@@ -10,24 +10,30 @@ const ROLE_HOME: Record<string, string> = {
 };
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+
+  // Supabase 환경변수 미설정 시 보호 경로는 /login으로 리다이렉트
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseUrl.startsWith("http") || !supabaseKey) {
+    if (!isPublicPath) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    return NextResponse.next();
+  }
+
   // 세션 쿠키 갱신
   const response = await updateSession(request);
-  const { pathname } = request.nextUrl;
 
   // 세션에서 유저 확인
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: () => {},
-      },
-    }
-  );
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll: () => {},
+    },
+  });
   const { data: { user } } = await supabase.auth.getUser();
-
-  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
   // 비로그인 → 보호된 경로 접근 시 /login으로
   if (!user && !isPublicPath) {
