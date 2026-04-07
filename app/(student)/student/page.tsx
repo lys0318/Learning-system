@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/logout/actions";
 import ProgressUpdater from "@/components/student/ProgressUpdater";
+import DeleteButton from "@/components/DeleteButton";
+import { unenrollCourse } from "./actions";
 
 export default async function StudentPage() {
   const supabase = await createClient();
@@ -37,6 +39,9 @@ export default async function StudentPage() {
             <span className="text-gray-500 text-sm">/ 수강생</span>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/student/quizzes" className="text-sm text-gray-400 hover:text-white transition-colors">
+              퀴즈
+            </Link>
             <Link href="/student/courses" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
               강의 둘러보기
             </Link>
@@ -91,8 +96,20 @@ export default async function StudentPage() {
                 const course = (e.courses as unknown) as { title: string; profiles: { full_name: string } | null } | null;
                 return (
                   <div key={e.id} className="bg-[#16213e] rounded-xl border border-green-500/20 p-5">
-                    <h3 className="font-semibold">{course?.title}</h3>
-                    <p className="text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-semibold">{course?.title}</h3>
+                        <p className="text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
+                      </div>
+                      <DeleteButton
+                        action={async () => {
+                          "use server";
+                          await unenrollCourse(e.id);
+                        }}
+                        confirmMessage={`"${course?.title}" 수강 이력을 삭제하시겠습니까?`}
+                        label="삭제"
+                      />
+                    </div>
                     <div className="mt-3 flex items-center gap-2">
                       <div className="flex-1 h-2 bg-gray-700 rounded-full">
                         <div className="h-full w-full rounded-full bg-gradient-to-r from-green-500 to-green-400" />

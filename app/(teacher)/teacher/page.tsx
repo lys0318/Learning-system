@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/logout/actions";
 import { deleteCourse } from "./actions";
+import DeleteButton from "@/components/DeleteButton";
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   draft:     { label: "초안",   color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
@@ -57,12 +58,20 @@ export default async function TeacherPage() {
             <h1 className="text-xl font-bold">내 강의 관리</h1>
             <p className="text-gray-400 text-sm mt-0.5">총 {courses?.length ?? 0}개 강의</p>
           </div>
-          <Link
-            href="/teacher/courses/new"
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
-          >
-            + 강의 생성
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/teacher/quizzes"
+              className="px-4 py-2 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
+            >
+              퀴즈 관리
+            </Link>
+            <Link
+              href="/teacher/courses/new"
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
+            >
+              + 강의 생성
+            </Link>
+          </div>
         </div>
 
         {/* 강의 목록 */}
@@ -91,27 +100,24 @@ export default async function TeacherPage() {
 
                   <div className="flex items-center gap-2 shrink-0">
                     <Link
+                      href={`/teacher/courses/${course.id}/materials`}
+                      className="px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
+                    >
+                      자료
+                    </Link>
+                    <Link
                       href={`/teacher/courses/${course.id}/edit`}
                       className="px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
                     >
                       수정
                     </Link>
-                    <form
+                    <DeleteButton
                       action={async () => {
                         "use server";
                         await deleteCourse(course.id);
                       }}
-                    >
-                      <button
-                        type="submit"
-                        className="px-3 py-1.5 rounded-lg border border-red-500/30 hover:bg-red-500/10 text-sm text-red-400 transition-colors"
-                        onClick={(e) => {
-                          if (!confirm("강의를 삭제하시겠습니까?")) e.preventDefault();
-                        }}
-                      >
-                        삭제
-                      </button>
-                    </form>
+                      confirmMessage="강의를 삭제하시겠습니까?"
+                    />
                   </div>
                 </div>
               );

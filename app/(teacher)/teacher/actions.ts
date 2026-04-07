@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 async function getTeacher() {
@@ -55,13 +56,21 @@ export async function updateCourse(_: unknown, formData: FormData) {
 export async function deleteCourse(courseId: string) {
   const { supabase, userId } = await getTeacher();
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("courses")
-    .delete()
+    .delete({ count: "exact" })
     .eq("id", courseId)
     .eq("teacher_id", userId);
 
-  if (error) return { error: "강의 삭제 중 오류가 발생했습니다." };
+  if (error) {
+    console.error("deleteCourse error:", error);
+    return { error: "강의 삭제 중 오류가 발생했습니다." };
+  }
+  if (count === 0) {
+    console.error("deleteCourse: 0 rows deleted (RLS may be blocking)");
+    return { error: "삭제 권한이 없거나 강의를 찾을 수 없습니다." };
+  }
 
+  revalidatePath("/teacher");
   redirect("/teacher");
 }

@@ -31,6 +31,22 @@ export async function enrollCourse(courseId: string) {
   return { success: true };
 }
 
+export async function unenrollCourse(enrollmentId: string) {
+  const { supabase, userId } = await getStudent();
+
+  const { error } = await supabase
+    .from("enrollments")
+    .delete()
+    .eq("id", enrollmentId)
+    .eq("student_id", userId)
+    .eq("status", "completed");
+
+  if (error) return { error: "수강 취소 중 오류가 발생했습니다." };
+
+  revalidatePath("/student");
+  redirect("/student");
+}
+
 export async function updateProgress(enrollmentId: string, progress: number) {
   const { supabase, userId } = await getStudent();
 
