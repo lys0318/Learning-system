@@ -8,6 +8,7 @@ const NAV = [
   { href: "/student", label: "대시보드", exact: true },
   { href: "/student/my-courses", label: "내 강의", exact: false },
   { href: "/student/ai-tutor", label: "AI 튜터", exact: false },
+  { href: "/student/messages", label: "선생님 질문", exact: false },
   { href: "/student/courses", label: "강의 둘러보기", exact: true },
   { href: "/student/quizzes", label: "퀴즈", exact: false },
 ];

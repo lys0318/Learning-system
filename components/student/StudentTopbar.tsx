@@ -12,6 +12,7 @@ const PAGE_META: { pattern: RegExp; title: string; action?: { label: string; hre
   { pattern: /^\/student\/courses$/, title: "강의 둘러보기" },
   { pattern: /^\/student\/quizzes\/[^/]+/, title: "퀴즈 풀기" },
   { pattern: /^\/student\/quizzes/, title: "퀴즈" },
+  { pattern: /^\/student\/messages/, title: "선생님 질문" },
   { pattern: /^\/student\/account/, title: "계정 관리" },
 ];
 

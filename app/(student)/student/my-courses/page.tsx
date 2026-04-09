@@ -26,7 +26,7 @@ export default async function MyCoursesPage() {
 
   const { data: enrollments } = await supabase
     .from("enrollments")
-    .select("id, progress, status, enrolled_at, courses(id, title, profiles(full_name), course_materials(count))")
+    .select("id, progress, status, enrolled_at, courses(id, title, profiles!teacher_id(full_name), course_materials(count))")
     .eq("student_id", user.id)
     .order("enrolled_at", { ascending: false });
 

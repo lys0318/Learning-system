@@ -32,6 +32,27 @@ export async function createCourse(_: unknown, formData: FormData) {
   redirect("/teacher");
 }
 
+// 강의 생성 후 courseId 반환 (파일 업로드와 함께 사용)
+export async function createCourseAndReturn(formData: FormData): Promise<{ courseId: string } | { error: string }> {
+  const { supabase, userId } = await getTeacher();
+
+  const title = (formData.get("title") as string).trim();
+  const description = (formData.get("description") as string).trim();
+  const status = formData.get("status") as string;
+
+  if (!title) return { error: "강의명을 입력해주세요." };
+
+  const { data, error } = await supabase
+    .from("courses")
+    .insert({ teacher_id: userId, title, description: description || null, status })
+    .select("id")
+    .single();
+
+  if (error || !data) return { error: "강의 생성 중 오류가 발생했습니다." };
+
+  return { courseId: data.id };
+}
+
 export async function updateCourse(_: unknown, formData: FormData) {
   const { supabase, userId } = await getTeacher();
 

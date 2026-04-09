@@ -12,6 +12,7 @@ const PAGE_META: { pattern: RegExp; title: string; action?: { label: string; hre
   { pattern: /^\/teacher\/quizzes\/[^/]+/, title: "퀴즈 상세" },
   { pattern: /^\/teacher\/quizzes/, title: "퀴즈 관리", action: { label: "+ AI 퀴즈 생성", href: "/teacher/quizzes/new" } },
   { pattern: /^\/teacher\/students/, title: "수강생 관리" },
+  { pattern: /^\/teacher\/messages/, title: "학생 질문" },
   { pattern: /^\/teacher\/account/, title: "계정 관리" },
 ];
 

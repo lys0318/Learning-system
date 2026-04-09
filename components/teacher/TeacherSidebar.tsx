@@ -9,6 +9,7 @@ const NAV = [
   { href: "/teacher/courses/new", label: "강의 생성", exact: true },
   { href: "/teacher/quizzes", label: "퀴즈 관리", exact: false },
   { href: "/teacher/students", label: "수강생 관리", exact: false },
+  { href: "/teacher/messages", label: "학생 질문", exact: false },
 ];
 
 export default function TeacherSidebar({ userName }: { userName: string }) {
