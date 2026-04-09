@@ -9,9 +9,16 @@ const ROLE_HOME: Record<string, string> = {
   admin: "/admin",
 };
 
+const ROLE_LABEL: Record<string, string> = {
+  student: "수강생",
+  teacher: "선생님",
+  admin: "교육운영자",
+};
+
 export async function login(_: unknown, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const selectedRole = formData.get("role") as string;
 
   const supabase = await createClient();
 
@@ -30,5 +37,14 @@ export async function login(_: unknown, formData: FormData) {
     .eq("id", data.user.id)
     .single();
 
-  redirect(ROLE_HOME[profile?.role ?? "student"]);
+  const actualRole = profile?.role ?? "student";
+
+  if (selectedRole && selectedRole !== actualRole) {
+    await supabase.auth.signOut();
+    return {
+      error: `이 계정은 ${ROLE_LABEL[actualRole] ?? actualRole} 계정입니다. 올바른 역할을 선택해주세요.`,
+    };
+  }
+
+  redirect(ROLE_HOME[actualRole]);
 }

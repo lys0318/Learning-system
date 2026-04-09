@@ -1,14 +1,21 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { login } from "./actions";
+
+const ROLES = [
+  { value: "student", label: "수강생", desc: "강의 수강 및 AI 튜터 이용", icon: "🎓" },
+  { value: "teacher", label: "선생님", desc: "강의 개설 및 퀴즈 생성", icon: "👨‍🏫" },
+  { value: "admin", label: "교육운영자", desc: "전체 시스템 관리", icon: "⚙️" },
+];
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(login, null);
   const searchParams = useSearchParams();
   const signupSuccess = searchParams.get("signup") === "success";
+  const [selectedRole, setSelectedRole] = useState("student");
 
   return (
     <div className="min-h-screen bg-[#1a1a2e] flex items-center justify-center p-4">
@@ -25,6 +32,28 @@ export default function LoginPage() {
         <div className="bg-[#16213e] rounded-2xl p-8 border border-gray-700/50">
           <h2 className="text-xl font-semibold text-white mb-6">로그인</h2>
 
+          {/* 역할 선택 */}
+          <div className="mb-6">
+            <p className="text-sm text-gray-300 mb-3">역할을 선택하세요</p>
+            <div className="grid grid-cols-3 gap-2">
+              {ROLES.map((role) => (
+                <button
+                  key={role.value}
+                  type="button"
+                  onClick={() => setSelectedRole(role.value)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
+                    selectedRole === role.value
+                      ? "border-blue-500 bg-blue-500/15 text-white"
+                      : "border-gray-600 bg-transparent text-gray-400 hover:border-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  <span className="text-2xl">{role.icon}</span>
+                  <span className="text-xs font-medium">{role.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {signupSuccess && (
             <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
               회원가입이 완료되었습니다. 로그인해주세요.
@@ -38,6 +67,8 @@ export default function LoginPage() {
           )}
 
           <form action={formAction} className="space-y-4">
+            <input type="hidden" name="role" value={selectedRole} />
+
             <div>
               <label className="block text-sm text-gray-300 mb-1.5" htmlFor="email">
                 이메일
@@ -71,7 +102,7 @@ export default function LoginPage() {
               disabled={isPending}
               className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors mt-2"
             >
-              {isPending ? "로그인 중..." : "로그인"}
+              {isPending ? "로그인 중..." : `${ROLES.find((r) => r.value === selectedRole)?.label}으로 로그인`}
             </button>
           </form>
 

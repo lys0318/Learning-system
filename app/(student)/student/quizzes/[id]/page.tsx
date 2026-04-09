@@ -10,9 +10,7 @@ export default async function QuizDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -31,7 +29,6 @@ export default async function QuizDetailPage({
 
   if (!quiz) notFound();
 
-  // 수강 여부 확인
   const { data: enrollment } = await supabase
     .from("enrollments")
     .select("id")
@@ -51,57 +48,37 @@ export default async function QuizDetailPage({
   }[];
 
   return (
-    <div className="min-h-screen bg-[#1a1a2e] text-white">
-      <header className="border-b border-gray-700/50 px-8 py-4">
-        <div className="max-w-2xl mx-auto flex items-center gap-2 text-sm text-gray-400">
-          <Link href="/student" className="hover:text-white transition-colors">
-            대시보드
-          </Link>
-          <span>/</span>
+    <main className="max-w-2xl mx-auto px-8 py-8">
+      {/* 브레드크럼 */}
+      <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+        <Link href="/student/quizzes" className="hover:text-white transition-colors">퀴즈</Link>
+        <span>/</span>
+        <span className="text-white truncate">{quiz.title}</span>
+      </nav>
+
+      <div className="mb-6">
+        <p className="text-blue-400 text-xs mb-1">{course?.title}</p>
+        <h1 className="text-xl font-bold">{quiz.title}</h1>
+        {questions.length > 0 ? (
+          <p className="text-gray-400 text-sm mt-1">총 {questions.length}문항 · 모든 문항에 답한 후 제출하세요</p>
+        ) : (
+          <p className="text-yellow-400 text-sm mt-1">퀴즈 문항이 없습니다. 교사에게 퀴즈를 다시 생성하도록 요청해주세요.</p>
+        )}
+      </div>
+
+      {questions.length > 0 ? (
+        <QuizPlayer quizId={quiz.id} title={quiz.title} questions={questions} />
+      ) : (
+        <div className="bg-[#16213e] rounded-xl border border-yellow-500/30 p-10 text-center">
+          <p className="text-yellow-400 text-sm mb-4">이 퀴즈에는 문항 데이터가 없습니다.</p>
           <Link
             href="/student/quizzes"
-            className="hover:text-white transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
           >
-            퀴즈
+            퀴즈 목록으로
           </Link>
-          <span>/</span>
-          <span className="text-white truncate">{quiz.title}</span>
         </div>
-      </header>
-
-      <main className="max-w-2xl mx-auto px-8 py-8">
-        <div className="mb-6">
-          <p className="text-blue-400 text-xs mb-1">{course?.title}</p>
-          <h1 className="text-xl font-bold">{quiz.title}</h1>
-          {questions.length > 0 ? (
-            <p className="text-gray-400 text-sm mt-1">
-              총 {questions.length}문항 · 모든 문항에 답한 후 제출하세요
-            </p>
-          ) : (
-            <p className="text-yellow-400 text-sm mt-1">
-              퀴즈 문항이 없습니다. 교사에게 퀴즈를 다시 생성하도록 요청해주세요.
-            </p>
-          )}
-        </div>
-
-        {questions.length > 0 ? (
-          <QuizPlayer
-            quizId={quiz.id}
-            title={quiz.title}
-            questions={questions}
-          />
-        ) : (
-          <div className="bg-[#16213e] rounded-xl border border-yellow-500/30 p-10 text-center">
-            <p className="text-yellow-400 text-sm mb-4">이 퀴즈에는 문항 데이터가 없습니다.</p>
-            <Link
-              href="/student/quizzes"
-              className="px-4 py-2 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
-            >
-              퀴즈 목록으로
-            </Link>
-          </div>
-        )}
-      </main>
-    </div>
+      )}
+    </main>
   );
 }

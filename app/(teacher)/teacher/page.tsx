@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "@/app/(auth)/logout/actions";
 import { deleteCourse } from "./actions";
 import DeleteButton from "@/components/DeleteButton";
 
@@ -30,111 +29,202 @@ export default async function TeacherPage() {
     .eq("teacher_id", user.id)
     .order("created_at", { ascending: false });
 
+  const { data: quizzes } = await supabase
+    .from("quizzes")
+    .select("id")
+    .eq("teacher_id", user.id);
+
+  // 전체 수강생 수 (내 강의 기준)
+  const courseIds = (courses ?? []).map((c) => c.id);
+  const { data: enrollmentRows } = courseIds.length > 0
+    ? await supabase
+        .from("enrollments")
+        .select("student_id, progress")
+        .in("course_id", courseIds)
+    : { data: [] };
+
+  const uniqueStudents = new Set((enrollmentRows ?? []).map((e) => e.student_id)).size;
+  const avgProgress = (enrollmentRows ?? []).length > 0
+    ? Math.round((enrollmentRows ?? []).reduce((s, e) => s + e.progress, 0) / (enrollmentRows ?? []).length)
+    : 0;
+
+  // 최근 수강생 목록 (최대 5명)
+  const { data: recentEnrollments } = courseIds.length > 0
+    ? await supabase
+        .from("enrollments")
+        .select("student_id, progress, status, enrolled_at, courses(title), profiles(full_name)")
+        .in("course_id", courseIds)
+        .order("enrolled_at", { ascending: false })
+        .limit(5)
+    : { data: [] };
+
   return (
-    <div className="min-h-screen bg-[#1a1a2e] text-white">
-      {/* 헤더 */}
-      <header className="border-b border-gray-700/50 px-8 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold">AI</div>
-            <span className="font-semibold">LearnAI</span>
-            <span className="text-gray-500 text-sm">/ 교사</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-400 text-sm">{profile?.full_name}</span>
-            <form action={logout}>
-              <button type="submit" className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm transition-colors">
-                로그아웃
-              </button>
-            </form>
+    <main className="px-6 py-6 space-y-6">
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
+          <p className="text-gray-400 text-xs mb-2">담당 강의</p>
+          <p className="text-2xl font-bold">{courses?.length ?? 0}개</p>
+          <p className="text-gray-500 text-xs mt-1">
+            공개 {courses?.filter((c) => c.status === "published").length ?? 0}개
+          </p>
+        </div>
+        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
+          <p className="text-gray-400 text-xs mb-2">총 수강생</p>
+          <p className="text-2xl font-bold">{uniqueStudents}명</p>
+          <p className="text-gray-500 text-xs mt-1">전체 강의 합산</p>
+        </div>
+        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
+          <p className="text-gray-400 text-xs mb-2">평균 진도율</p>
+          <p className="text-2xl font-bold">{avgProgress}%</p>
+          <div className="mt-2 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${avgProgress}%` }} />
           </div>
         </div>
-      </header>
+        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
+          <p className="text-gray-400 text-xs mb-2">AI 생성 퀴즈</p>
+          <p className="text-2xl font-bold">{quizzes?.length ?? 0}개</p>
+          <p className="text-gray-500 text-xs mt-1">전체 퀴즈 수</p>
+        </div>
+      </div>
 
-      <main className="max-w-5xl mx-auto px-8 py-8">
-        {/* 상단 타이틀 + 강의 생성 버튼 */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-bold">내 강의 관리</h1>
-            <p className="text-gray-400 text-sm mt-0.5">총 {courses?.length ?? 0}개 강의</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/teacher/quizzes"
-              className="px-4 py-2 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
-            >
-              퀴즈 관리
-            </Link>
+      <div className="grid lg:grid-cols-5 gap-6">
+        {/* 강의 목록 (3/5) */}
+        <div className="lg:col-span-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-300">내 강의 목록</h2>
             <Link
               href="/teacher/courses/new"
-              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-medium transition-colors"
             >
               + 강의 생성
             </Link>
           </div>
+
+          {courses && courses.length > 0 ? (
+            <div className="space-y-2">
+              {courses.map((course) => {
+                const enrollCount = (course.enrollments as { count: number }[])[0]?.count ?? 0;
+                const s = STATUS_LABEL[course.status] ?? STATUS_LABEL.draft;
+                return (
+                  <div
+                    key={course.id}
+                    className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4 flex items-start gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-sm truncate">{course.title}</h3>
+                        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${s.color}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                      <p className="text-gray-500 text-xs">수강생 {enrollCount}명</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Link
+                        href={`/teacher/courses/${course.id}/materials`}
+                        className="px-2.5 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-xs text-gray-300 transition-colors"
+                      >
+                        자료
+                      </Link>
+                      <Link
+                        href={`/teacher/courses/${course.id}/edit`}
+                        className="px-2.5 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-xs text-gray-300 transition-colors"
+                      >
+                        수정
+                      </Link>
+                      <DeleteButton
+                        action={async () => {
+                          "use server";
+                          await deleteCourse(course.id);
+                        }}
+                        confirmMessage="강의를 삭제하시겠습니까?"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-10 text-center">
+              <p className="text-gray-400 mb-4 text-sm">아직 개설한 강의가 없습니다.</p>
+              <Link
+                href="/teacher/courses/new"
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
+              >
+                첫 강의 만들기
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* 강의 목록 */}
-        {courses && courses.length > 0 ? (
-          <div className="space-y-3">
-            {courses.map((course) => {
-              const enrollCount = (course.enrollments as { count: number }[])[0]?.count ?? 0;
-              const s = STATUS_LABEL[course.status] ?? STATUS_LABEL.draft;
-              return (
-                <div
-                  key={course.id}
-                  className="bg-[#16213e] rounded-xl border border-gray-700/50 p-5 flex items-start gap-4"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h2 className="font-semibold truncate">{course.title}</h2>
-                      <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${s.color}`}>
-                        {s.label}
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-sm line-clamp-1">
-                      {course.description ?? "설명 없음"}
-                    </p>
-                    <p className="text-gray-500 text-xs mt-2">수강생 {enrollCount}명</p>
-                  </div>
+        {/* 최근 수강생 + AI 인사이트 (2/5) */}
+        <div className="lg:col-span-2 space-y-4">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-gray-300">최근 수강생</h2>
+              <Link href="/teacher/students" className="text-xs text-blue-400 hover:text-blue-300">전체 보기</Link>
+            </div>
+            <div className="bg-[#16213e] rounded-xl border border-gray-700/50 overflow-hidden">
+              {(recentEnrollments ?? []).length > 0 ? (
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-700/50">
+                      <th className="text-left px-4 py-2.5 text-gray-400 font-medium">이름</th>
+                      <th className="text-left px-4 py-2.5 text-gray-400 font-medium">강의</th>
+                      <th className="text-right px-4 py-2.5 text-gray-400 font-medium">진도</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(recentEnrollments ?? []).map((e, i) => {
+                      const p = (e.profiles as unknown) as { full_name: string } | null;
+                      const c = (e.courses as unknown) as { title: string } | null;
+                      return (
+                        <tr key={i} className="border-b border-gray-700/30 last:border-0">
+                          <td className="px-4 py-2.5 text-white font-medium truncate max-w-[80px]">{p?.full_name ?? "-"}</td>
+                          <td className="px-4 py-2.5 text-gray-400 truncate max-w-[80px]">{c?.title ?? "-"}</td>
+                          <td className="px-4 py-2.5 text-right">
+                            <span className={`font-medium ${e.progress >= 70 ? "text-green-400" : e.progress >= 40 ? "text-blue-400" : "text-yellow-400"}`}>
+                              {e.progress}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-500 text-xs text-center py-6">수강생이 없습니다</p>
+              )}
+            </div>
+          </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Link
-                      href={`/teacher/courses/${course.id}/materials`}
-                      className="px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
-                    >
-                      자료
-                    </Link>
-                    <Link
-                      href={`/teacher/courses/${course.id}/edit`}
-                      className="px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-sm text-gray-300 transition-colors"
-                    >
-                      수정
-                    </Link>
-                    <DeleteButton
-                      action={async () => {
-                        "use server";
-                        await deleteCourse(course.id);
-                      }}
-                      confirmMessage="강의를 삭제하시겠습니까?"
-                    />
-                  </div>
-                </div>
-              );
-            })}
+          {/* AI 인사이트 */}
+          <div>
+            <h2 className="text-sm font-semibold text-gray-300 mb-3">AI 인사이트</h2>
+            <div className="space-y-2">
+              <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
+                <p className="text-xs text-gray-400 mb-1">퀴즈 현황</p>
+                <p className="text-sm font-medium">
+                  {(quizzes?.length ?? 0) > 0
+                    ? `AI 퀴즈 ${quizzes?.length}개 생성됨`
+                    : "아직 퀴즈가 없습니다"}
+                </p>
+                <Link href="/teacher/quizzes/new" className="text-xs text-blue-400 hover:text-blue-300 mt-1 block">
+                  새 퀴즈 생성 →
+                </Link>
+              </div>
+              <div className="bg-[#16213e] rounded-xl border border-blue-500/20 p-4">
+                <p className="text-xs text-gray-400 mb-1">💡 추천</p>
+                <p className="text-sm font-medium">수강생 학습 자료를 업로드하고 AI 퀴즈를 생성해보세요</p>
+                <Link href="/teacher/quizzes/new" className="mt-2 inline-block px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-medium transition-colors">
+                  AI 퀴즈 생성
+                </Link>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-16 text-center">
-            <p className="text-gray-400 mb-4">아직 개설한 강의가 없습니다.</p>
-            <Link
-              href="/teacher/courses/new"
-              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
-            >
-              첫 강의 만들기
-            </Link>
-          </div>
-        )}
-      </main>
-    </div>
+        </div>
+      </div>
+    </main>
   );
 }
