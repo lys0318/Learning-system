@@ -8,6 +8,8 @@ const NAV = [
   { href: "/admin", label: "전체 현황", exact: true },
   { href: "/admin/analytics", label: "학습 분석", exact: false },
   { href: "/admin/courses", label: "강의 관리", exact: false },
+  { href: "/admin/students", label: "수강생 모니터링", exact: false },
+  { href: "/admin/teachers", label: "강사 모니터링", exact: false },
 ];
 
 export default function AdminSidebar({ userName }: { userName: string }) {

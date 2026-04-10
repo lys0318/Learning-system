@@ -6,6 +6,7 @@ import { generateQuiz, type GenerateQuizState } from "@/app/(teacher)/teacher/qu
 interface Course {
   id: string;
   title: string;
+  total_weeks: number;
 }
 
 interface Material {
@@ -38,12 +39,17 @@ export default function QuizGenerateForm({ courses, coursesMaterials }: Props) {
 
   const [selectedCourseId, setSelectedCourseId] = useState(courses[0]?.id ?? "");
   const [selectedMaterialId, setSelectedMaterialId] = useState("");
+  const [selectedWeek, setSelectedWeek] = useState(1);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"easy" | "normal" | "hard">("normal");
 
   const courseMats = coursesMaterials[selectedCourseId] ?? [];
+  const selectedCourse = courses.find((c) => c.id === selectedCourseId);
+  const totalWeeks = selectedCourse?.total_weeks ?? 1;
 
   function handleCourseChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setSelectedCourseId(e.target.value);
-    setSelectedMaterialId(""); // 강의 바꾸면 자료 선택 초기화
+    setSelectedMaterialId("");
+    setSelectedWeek(1);
   }
 
   return (
@@ -66,6 +72,58 @@ export default function QuizGenerateForm({ courses, coursesMaterials }: Props) {
             <option key={c.id} value={c.id}>{c.title}</option>
           ))}
         </select>
+      </div>
+
+      {/* 주차 선택 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          주차 선택 <span className="text-red-400">*</span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: totalWeeks }, (_, i) => i + 1).map((w) => (
+            <button
+              key={w}
+              type="button"
+              disabled={isPending}
+              onClick={() => setSelectedWeek(w)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors disabled:opacity-50 ${
+                selectedWeek === w
+                  ? "bg-blue-600 border-blue-500 text-white"
+                  : "bg-[#0f172a] border-gray-700 text-gray-300 hover:border-gray-500"
+              }`}
+            >
+              {w}주차
+            </button>
+          ))}
+        </div>
+        <input type="hidden" name="week_number" value={selectedWeek} />
+      </div>
+
+      {/* 난이도 선택 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          난이도 <span className="text-red-400">*</span>
+        </label>
+        <div className="flex gap-2">
+          {([
+            { value: "easy",   label: "쉬움",   color: "bg-green-600 border-green-500",   idle: "border-gray-700 text-gray-300 hover:border-green-600/60" },
+            { value: "normal", label: "보통",   color: "bg-blue-600 border-blue-500",    idle: "border-gray-700 text-gray-300 hover:border-blue-600/60" },
+            { value: "hard",   label: "어려움", color: "bg-red-600 border-red-500",      idle: "border-gray-700 text-gray-300 hover:border-red-600/60" },
+          ] as const).map((d) => (
+            <button
+              key={d.value}
+              type="button"
+              disabled={isPending}
+              onClick={() => setSelectedDifficulty(d.value)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-50 ${
+                selectedDifficulty === d.value ? `${d.color} text-white` : d.idle
+              }`}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+        <input type="hidden" name="difficulty" value={selectedDifficulty} />
       </div>
 
       {/* 학습 자료 선택 (선택 사항) */}

@@ -34,6 +34,16 @@ export default async function TeacherPage() {
     .select("id")
     .eq("teacher_id", user.id);
 
+  const { data: ratings } = await supabase
+    .from("teacher_ratings")
+    .select("rating, comment, course_id")
+    .eq("teacher_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const avgRating = (ratings ?? []).length > 0
+    ? Math.round(((ratings ?? []).reduce((s, r) => s + r.rating, 0) / (ratings ?? []).length) * 10) / 10
+    : null;
+
   // 전체 수강생 수 (내 강의 기준)
   const courseIds = (courses ?? []).map((c) => c.id);
   const { data: enrollmentRows } = courseIds.length > 0
@@ -61,7 +71,7 @@ export default async function TeacherPage() {
   return (
     <main className="px-6 py-6 space-y-6">
       {/* 통계 카드 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
           <p className="text-gray-400 text-xs mb-2">담당 강의</p>
           <p className="text-2xl font-bold">{courses?.length ?? 0}개</p>
@@ -85,6 +95,19 @@ export default async function TeacherPage() {
           <p className="text-gray-400 text-xs mb-2">AI 생성 퀴즈</p>
           <p className="text-2xl font-bold">{quizzes?.length ?? 0}개</p>
           <p className="text-gray-500 text-xs mt-1">전체 퀴즈 수</p>
+        </div>
+        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
+          <p className="text-gray-400 text-xs mb-2">평균 평점</p>
+          <p className="text-2xl font-bold">
+            {avgRating !== null ? (
+              <span className="text-yellow-400">{avgRating.toFixed(1)}</span>
+            ) : (
+              <span className="text-gray-500">-</span>
+            )}
+          </p>
+          <p className="text-gray-500 text-xs mt-1">
+            {(ratings ?? []).length > 0 ? `${(ratings ?? []).length}개 평가` : "아직 평가 없음"}
+          </p>
         </div>
       </div>
 
@@ -223,6 +246,26 @@ export default async function TeacherPage() {
               </div>
             </div>
           </div>
+
+          {/* 최근 평가 */}
+          {(ratings ?? []).length > 0 && (
+            <div>
+              <h2 className="text-sm font-semibold text-gray-300 mb-3">최근 수강생 평가</h2>
+              <div className="space-y-2">
+                {(ratings ?? []).slice(0, 3).map((r, i) => (
+                  <div key={i} className="bg-[#16213e] rounded-xl border border-gray-700/50 p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-400">익명</span>
+                      <span className="text-yellow-400 text-xs">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                    </div>
+                    {r.comment && (
+                      <p className="text-xs text-gray-300 leading-relaxed line-clamp-2">{r.comment}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>

@@ -2,34 +2,7 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const FILE_ICON: Record<string, string> = {
-  pdf: "📄",
-  ppt: "📊",
-  image: "🖼️",
-  video: "🎬",
-  text: "📝",
-  other: "📎",
-};
-
-function getFileCategory(mimeType: string) {
-  if (mimeType === "application/pdf") return "pdf";
-  if (
-    mimeType === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-    mimeType === "application/vnd.ms-powerpoint"
-  )
-    return "ppt";
-  if (mimeType.startsWith("image/")) return "image";
-  if (mimeType.startsWith("video/")) return "video";
-  if (mimeType.startsWith("text/")) return "text";
-  return "other";
-}
-
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+import WeeklyLearning from "@/components/student/WeeklyLearning";
 
 export default async function StudentCourseDetailPage({
   params,
@@ -39,9 +12,7 @@ export default async function StudentCourseDetailPage({
   const { id: courseId } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -54,7 +25,7 @@ export default async function StudentCourseDetailPage({
   // 수강 여부 확인
   const { data: enrollment } = await supabase
     .from("enrollments")
-    .select("id")
+    .select("id, progress")
     .eq("student_id", user.id)
     .eq("course_id", courseId)
     .single();
@@ -62,23 +33,24 @@ export default async function StudentCourseDetailPage({
 
   const { data: course } = await supabase
     .from("courses")
-    .select("id, title, description, profiles(full_name)")
+    .select("id, title, description, total_weeks, profiles!teacher_id(full_name)")
     .eq("id", courseId)
     .single();
   if (!course) notFound();
 
   const teacher = (course.profiles as unknown) as { full_name: string } | null;
+  const totalWeeks: number = (course as unknown as { total_weeks: number }).total_weeks ?? 1;
 
-  // admin 클라이언트로 RLS 우회하여 자료 조회 + 서명 URL 생성
+  // admin으로 RLS 우회하여 자료 + 서명 URL 생성
   const admin = createAdminClient();
 
   const { data: materials } = await admin
     .from("course_materials")
-    .select("id, name, file_path, file_type, file_size, created_at")
+    .select("id, name, file_path, file_type, file_size, week_number, created_at")
     .eq("course_id", courseId)
-    .order("created_at", { ascending: false });
+    .order("week_number", { ascending: true })
+    .order("created_at", { ascending: true });
 
-  // 각 자료에 대한 서명된 다운로드 URL 생성 (1시간 유효)
   const materialsWithUrls = await Promise.all(
     (materials ?? []).map(async (m) => {
       const { data: urlData } = await admin.storage
@@ -88,13 +60,45 @@ export default async function StudentCourseDetailPage({
     })
   );
 
+  // 이 강의의 퀴즈 목록
+  const { data: quizzes } = await admin
+    .from("quizzes")
+    .select("id, title, week_number, difficulty, questions")
+    .eq("course_id", courseId)
+    .order("week_number", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  // 이 학생의 학습 완료 목록
+  const { data: completions } = await supabase
+    .from("material_completions")
+    .select("material_id")
+    .eq("student_id", user.id)
+    .eq("course_id", courseId);
+
+  const completedMaterialIds = (completions ?? []).map((c) => c.material_id as string);
+
+  // 이 학생이 제출한 퀴즈 ID 목록
+  const quizIds = (quizzes ?? []).map((q) => q.id);
+  const { data: quizResults } = quizIds.length > 0
+    ? await supabase
+        .from("quiz_results")
+        .select("quiz_id")
+        .eq("student_id", user.id)
+        .in("quiz_id", quizIds)
+    : { data: [] };
+
+  const completedQuizIds = [...new Set((quizResults ?? []).map((r) => r.quiz_id as string))];
+
+  // 자료 + 퀴즈 기반 진도율 계산
+  const totalItems = materialsWithUrls.length + (quizzes ?? []).length;
+  const doneItems = completedMaterialIds.length + completedQuizIds.length;
+  const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : enrollment.progress;
+
   return (
     <main className="max-w-3xl mx-auto px-8 py-8">
       {/* 브레드크럼 */}
       <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link href="/student" className="hover:text-white transition-colors">
-          내 강의
-        </Link>
+        <Link href="/student" className="hover:text-white transition-colors">내 강의</Link>
         <span>/</span>
         <span className="text-white truncate">{course.title}</span>
       </nav>
@@ -104,9 +108,13 @@ export default async function StudentCourseDetailPage({
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold">{course.title}</h1>
-            <p className="text-gray-400 text-sm mt-1">{teacher?.full_name} 선생님</p>
-            {course.description && (
-              <p className="text-gray-300 text-sm mt-3 leading-relaxed">{course.description}</p>
+            <p className="text-gray-400 text-sm mt-1">
+              {teacher?.full_name ? `${teacher.full_name} 선생님` : "선생님"} · {totalWeeks}주차 수업
+            </p>
+            {(course as unknown as { description: string | null }).description && (
+              <p className="text-gray-300 text-sm mt-3 leading-relaxed">
+                {(course as unknown as { description: string }).description}
+              </p>
             )}
           </div>
           <Link
@@ -118,55 +126,29 @@ export default async function StudentCourseDetailPage({
         </div>
       </div>
 
-      {/* 학습 자료 */}
-      <div>
-        <h2 className="text-base font-semibold mb-3">
-          학습 자료{" "}
-          <span className="text-gray-400 font-normal text-sm">
-            ({materialsWithUrls.length}개)
-          </span>
-        </h2>
-
-        {materialsWithUrls.length > 0 ? (
-          <div className="space-y-2">
-            {materialsWithUrls.map((m) => {
-              const cat = getFileCategory(m.file_type);
-              const icon = FILE_ICON[cat];
-              return (
-                <div
-                  key={m.id}
-                  className="bg-[#16213e] rounded-xl border border-gray-700/50 px-5 py-4 flex items-center gap-4"
-                >
-                  <span className="text-2xl shrink-0">{icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{m.name}</p>
-                    <p className="text-gray-500 text-xs mt-0.5">
-                      {formatBytes(m.file_size)} ·{" "}
-                      {new Date(m.created_at).toLocaleDateString("ko-KR")}
-                    </p>
-                  </div>
-                  {m.downloadUrl ? (
-                    <a
-                      href={m.downloadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-medium transition-colors"
-                    >
-                      ⬇ 다운로드
-                    </a>
-                  ) : (
-                    <span className="shrink-0 text-gray-600 text-xs">다운로드 불가</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-12 text-center text-gray-400">
-            아직 업로드된 학습 자료가 없습니다.
-          </div>
-        )}
-      </div>
+      {/* 주차별 학습 */}
+      <WeeklyLearning
+        courseId={courseId}
+        totalWeeks={totalWeeks}
+        materials={materialsWithUrls.map((m) => ({
+          id: m.id,
+          name: m.name,
+          file_type: m.file_type,
+          file_size: m.file_size,
+          week_number: m.week_number ?? 1,
+          downloadUrl: m.downloadUrl,
+        }))}
+        quizzes={(quizzes ?? []).map((q) => ({
+          id: q.id,
+          title: q.title,
+          week_number: (q as unknown as { week_number: number }).week_number ?? 1,
+          difficulty: (q as unknown as { difficulty: string }).difficulty ?? "normal",
+          questionCount: Array.isArray(q.questions) ? (q.questions as unknown[]).length : 0,
+        }))}
+        initialCompletedIds={completedMaterialIds}
+        initialCompletedQuizIds={completedQuizIds}
+        initialProgress={progress}
+      />
     </main>
   );
 }

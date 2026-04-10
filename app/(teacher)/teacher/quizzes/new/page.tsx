@@ -18,7 +18,7 @@ export default async function NewQuizPage() {
 
   const { data: courses } = await supabase
     .from("courses")
-    .select("id, title")
+    .select("id, title, total_weeks")
     .eq("teacher_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -62,7 +62,10 @@ export default async function NewQuizPage() {
 
       {courses && courses.length > 0 ? (
         <div className="bg-[#16213e] rounded-2xl border border-gray-700/50 p-6">
-          <QuizGenerateForm courses={courses} coursesMaterials={coursesMaterials} />
+          <QuizGenerateForm
+          courses={courses.map((c) => ({ id: c.id, title: c.title, total_weeks: (c as unknown as { total_weeks: number }).total_weeks ?? 1 }))}
+          coursesMaterials={coursesMaterials}
+        />
         </div>
       ) : (
         <div className="bg-[#16213e] rounded-2xl border border-gray-700/50 p-12 text-center">

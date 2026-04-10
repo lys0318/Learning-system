@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import ProgressUpdater from "@/components/student/ProgressUpdater";
 import DeleteButton from "@/components/DeleteButton";
+import RatingButton from "@/components/student/RatingButton";
 import { unenrollCourse } from "./actions";
 
 const COURSE_COLORS = [
@@ -28,9 +28,24 @@ export default async function StudentPage() {
 
   const { data: enrollments } = await supabase
     .from("enrollments")
-    .select("id, progress, status, enrolled_at, courses(id, title, description, profiles(full_name))")
+    .select("id, progress, status, enrolled_at, course_id, courses(id, title, description, teacher_id, profiles(id, full_name))")
     .eq("student_id", user.id)
     .order("enrolled_at", { ascending: false });
+
+  const completedCourseIds = (enrollments ?? [])
+    .filter((e) => e.status === "completed")
+    .map((e) => e.course_id as string);
+
+  const { data: myRatings } = completedCourseIds.length > 0
+    ? await supabase
+        .from("teacher_ratings")
+        .select("course_id, rating, comment")
+        .eq("student_id", user.id)
+        .in("course_id", completedCourseIds)
+    : { data: [] };
+
+  const ratingMap: Record<string, { rating: number; comment: string | null }> = {};
+  (myRatings ?? []).forEach((r) => { ratingMap[r.course_id as string] = { rating: r.rating, comment: r.comment }; });
 
   const { data: quizResults } = await supabase
     .from("quiz_results")
@@ -43,7 +58,7 @@ export default async function StudentPage() {
     .eq("student_id", user.id)
     .eq("role", "user");
 
-  const active = enrollments?.filter((e) => e.status !== "completed") ?? [];
+  const active = enrollments ?? [];
   const completed = enrollments?.filter((e) => e.status === "completed") ?? [];
 
   const avgProgress = active.length > 0
@@ -62,7 +77,7 @@ export default async function StudentPage() {
         <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
           <p className="text-gray-400 text-xs mb-2">수강 중인 강의</p>
           <p className="text-2xl font-bold">{active.length}</p>
-          <p className="text-gray-500 text-xs mt-1">완강 {completed.length}개 포함</p>
+          <p className="text-gray-500 text-xs mt-1">완강 {completed.length}개</p>
         </div>
         <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
           <p className="text-gray-400 text-xs mb-2">전체 학습 진도</p>
@@ -93,28 +108,39 @@ export default async function StudentPage() {
         {active.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {active.map((e, idx) => {
-              const course = (e.courses as unknown) as { id: string; title: string; description: string | null; profiles: { full_name: string } | null } | null;
+              const course = (e.courses as unknown) as { id: string; title: string; description: string | null; teacher_id: string; profiles: { id: string; full_name: string } | null } | null;
               const color = COURSE_COLORS[idx % COURSE_COLORS.length];
               const emoji = COURSE_EMOJIS[idx % COURSE_EMOJIS.length];
+              const isCompleted = e.status === "completed";
+              const myRating = isCompleted ? ratingMap[e.course_id as string] : undefined;
               return (
-                <div key={e.id} className="bg-[#16213e] rounded-xl border border-gray-700/50 overflow-hidden">
+                <div key={e.id} className={`bg-[#16213e] rounded-xl border overflow-hidden ${isCompleted ? "border-green-500/30" : "border-gray-700/50"}`}>
                   {/* 썸네일 */}
                   <div className={`h-20 bg-gradient-to-br ${color} flex items-center justify-center`}>
                     <span className="text-3xl">{emoji}</span>
                   </div>
                   <div className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-sm">{course?.title}</h3>
-                        <p className="text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
-                      </div>
-                      <div className="flex gap-1.5 shrink-0">
+                      <div className="flex-1 min-w-0">
                         <Link
                           href={`/student/courses/${course?.id}`}
-                          className="flex items-center px-2.5 py-1.5 rounded-lg bg-gray-700/60 hover:bg-gray-700 text-gray-300 text-xs font-medium transition-colors"
+                          className="font-semibold text-sm hover:text-blue-400 transition-colors"
                         >
-                          📂 자료
+                          {course?.title}
                         </Link>
+                        <p className="text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isCompleted && (
+                          <DeleteButton
+                            action={async () => {
+                              "use server";
+                              await unenrollCourse(e.id);
+                            }}
+                            confirmMessage={`"${course?.title}" 수강 이력을 삭제하시겠습니까?`}
+                            label="삭제"
+                          />
+                        )}
                         <Link
                           href={`/student/courses/${course?.id}/chat`}
                           className="flex items-center px-2.5 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 text-xs font-medium transition-colors"
@@ -123,7 +149,35 @@ export default async function StudentPage() {
                         </Link>
                       </div>
                     </div>
-                    <ProgressUpdater enrollmentId={e.id} initialProgress={e.progress} />
+                    {/* 진도 바 */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className={isCompleted ? "text-green-400 font-medium" : "text-gray-400"}>
+                          {isCompleted ? "완강 ✓" : `${e.progress}% 완료`}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${isCompleted ? "bg-green-500" : ""}`}
+                          style={{
+                            width: `${e.progress}%`,
+                            background: isCompleted ? undefined : "linear-gradient(90deg, #3b82f6, #60a5fa)",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    {/* 완강 평가 버튼 */}
+                    {isCompleted && course?.teacher_id && (
+                      <div className="pt-1 border-t border-gray-700/40">
+                        <RatingButton
+                          courseId={e.course_id as string}
+                          teacherId={course.teacher_id}
+                          teacherName={course.profiles?.full_name ?? "선생님"}
+                          courseTitle={course.title}
+                          existingRating={myRating}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -158,43 +212,6 @@ export default async function StudentPage() {
         </section>
       )}
 
-      {/* 완강 */}
-      {completed.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold text-gray-300 mb-3">
-            완강 <span className="text-gray-500 font-normal">({completed.length})</span>
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {completed.map((e) => {
-              const course = (e.courses as unknown) as { title: string; profiles: { full_name: string } | null } | null;
-              return (
-                <div key={e.id} className="bg-[#16213e] rounded-xl border border-green-500/20 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-semibold text-sm">{course?.title}</h3>
-                      <p className="text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
-                    </div>
-                    <DeleteButton
-                      action={async () => {
-                        "use server";
-                        await unenrollCourse(e.id);
-                      }}
-                      confirmMessage={`"${course?.title}" 수강 이력을 삭제하시겠습니까?`}
-                      label="삭제"
-                    />
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-gray-700 rounded-full">
-                      <div className="h-full w-full rounded-full bg-green-500" />
-                    </div>
-                    <span className="text-green-400 text-xs font-medium">완강 ✓</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
     </main>
   );
 }

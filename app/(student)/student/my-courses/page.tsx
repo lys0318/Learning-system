@@ -62,7 +62,12 @@ export default async function MyCoursesPage() {
                 {/* 내용 */}
                 <div className="p-4 flex flex-col gap-3 flex-1">
                   <div>
-                    <h2 className="font-semibold text-sm leading-snug">{course?.title}</h2>
+                    <Link
+                      href={`/student/courses/${course?.id}`}
+                      className="font-semibold text-sm leading-snug hover:text-blue-400 transition-colors"
+                    >
+                      {course?.title}
+                    </Link>
                     <p className="text-gray-400 text-xs mt-0.5">
                       {course?.profiles?.full_name ?? "-"} 선생님
                       {materialCount > 0 && (
@@ -92,18 +97,18 @@ export default async function MyCoursesPage() {
                   </div>
 
                   {/* 버튼 */}
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-700/40 mt-auto">
+                  <div className="flex gap-2 pt-1 border-t border-gray-700/40 mt-auto">
                     <Link
-                      href={`/student/courses/${course?.id}/chat`}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-xs font-medium transition-colors"
+                      href={`/student/courses/${course?.id}`}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-gray-300 text-xs font-medium transition-colors"
                     >
-                      🤖 AI 질문하기
+                      📚 학습하기
                     </Link>
                     <Link
-                      href="/student/quizzes"
-                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-gray-300 text-xs font-medium transition-colors"
+                      href={`/student/courses/${course?.id}/chat`}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-xs font-medium transition-colors"
                     >
-                      ✏️ 퀴즈 풀기
+                      🤖 AI 질문
                     </Link>
                   </div>
                 </div>

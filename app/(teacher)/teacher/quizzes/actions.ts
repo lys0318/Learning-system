@@ -128,6 +128,10 @@ export async function generateQuiz(
     10,
     Math.max(3, parseInt(formData.get("num_questions") as string) || 5)
   );
+  const weekNumber = Math.max(1, parseInt(formData.get("week_number") as string) || 1);
+  const difficultyRaw = formData.get("difficulty") as string;
+  const difficulty = ["easy", "normal", "hard"].includes(difficultyRaw) ? difficultyRaw : "normal";
+  const difficultyLabel = { easy: "쉬움 (기초 개념 확인)", normal: "보통 (개념 응용)", hard: "어려움 (심화·응용 문제)" }[difficulty];
 
   if (!courseId) return { error: "강의를 선택해주세요." };
   if (!topic) return { error: "퀴즈 주제를 입력해주세요." };
@@ -164,15 +168,15 @@ export async function generateQuiz(
 
   let promptText: string;
   if (materialBlock) {
-    // PDF / 이미지: 파일 블록을 함께 전달하며 분석 요청
     promptText = `위의 학습 자료를 분석하여, "${topic}" 주제로 객관식 퀴즈 ${numQuestions}개를 생성해줘. 강의명은 "${course.title}"야.
+난이도는 "${difficultyLabel}"으로 맞춰줘.
 
 반드시 아래 JSON 배열 형식으로만 응답해줘. JSON 외 다른 텍스트는 절대 포함하지 마.
 ${jsonFormat}`;
   } else if (materialTextContent) {
-    // 텍스트 파일: 내용을 프롬프트에 포함
     const truncated = materialTextContent.slice(0, 8000);
     promptText = `다음 학습 자료를 바탕으로 강의 "${course.title}"에서 "${topic}" 주제의 객관식 퀴즈 ${numQuestions}개를 생성해줘.
+난이도는 "${difficultyLabel}"으로 맞춰줘.
 
 --- 학습 자료 ---
 ${truncated}
@@ -181,8 +185,8 @@ ${truncated}
 반드시 아래 JSON 배열 형식으로만 응답해줘. JSON 외 다른 텍스트는 절대 포함하지 마.
 ${jsonFormat}`;
   } else {
-    // 자료 없음: 주제만으로 생성
     promptText = `강의 "${course.title}"에서 "${topic}" 주제로 객관식 퀴즈 ${numQuestions}개를 생성해줘.
+난이도는 "${difficultyLabel}"으로 맞춰줘.
 
 반드시 아래 JSON 배열 형식으로만 응답해줘. JSON 외 다른 텍스트는 절대 포함하지 마.
 ${jsonFormat}`;
@@ -222,6 +226,8 @@ ${jsonFormat}`;
     teacher_id: userId,
     title: topic,
     questions,
+    week_number: weekNumber,
+    difficulty,
   });
 
   if (error) return { error: "퀴즈 저장 중 오류가 발생했습니다." };
