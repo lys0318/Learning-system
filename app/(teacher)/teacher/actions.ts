@@ -39,12 +39,13 @@ export async function createCourseAndReturn(formData: FormData): Promise<{ cours
   const title = (formData.get("title") as string).trim();
   const description = (formData.get("description") as string).trim();
   const status = formData.get("status") as string;
+  const totalWeeks = parseInt(formData.get("total_weeks") as string) || 4;
 
   if (!title) return { error: "강의명을 입력해주세요." };
 
   const { data, error } = await supabase
     .from("courses")
-    .insert({ teacher_id: userId, title, description: description || null, status })
+    .insert({ teacher_id: userId, title, description: description || null, status, total_weeks: totalWeeks })
     .select("id")
     .single();
 

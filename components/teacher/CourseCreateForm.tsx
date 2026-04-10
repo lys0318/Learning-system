@@ -47,10 +47,16 @@ const STATUS_OPTIONS = [
   { value: "archived", label: "보관", desc: "더 이상 수강 신청 불가" },
 ];
 
+interface QueuedFile {
+  file: File;
+  week: number;
+}
+
 export default function CourseCreateForm() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
+  const [totalWeeks, setTotalWeeks] = useState(4);
+  const [queuedFiles, setQueuedFiles] = useState<QueuedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
@@ -58,7 +64,7 @@ export default function CourseCreateForm() {
 
   function addFiles(incoming: FileList | null) {
     if (!incoming) return;
-    const newFiles: File[] = [];
+    const newItems: QueuedFile[] = [];
     for (const file of Array.from(incoming)) {
       if (file.size > 50 * 1024 * 1024) {
         setError(`"${file.name}" 파일이 50MB를 초과합니다.`);
@@ -68,19 +74,32 @@ export default function CourseCreateForm() {
         setError(`"${file.name}" 지원하지 않는 형식입니다.`);
         continue;
       }
-      // 중복 제거
-      if (!queuedFiles.find((f) => f.name === file.name && f.size === file.size)) {
-        newFiles.push(file);
+      if (!queuedFiles.find((q) => q.file.name === file.name && q.file.size === file.size)) {
+        newItems.push({ file, week: 1 });
       }
     }
-    if (newFiles.length > 0) {
+    if (newItems.length > 0) {
       setError(null);
-      setQueuedFiles((prev) => [...prev, ...newFiles]);
+      setQueuedFiles((prev) => [...prev, ...newItems]);
     }
   }
 
   function removeFile(idx: number) {
     setQueuedFiles((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function changeWeek(idx: number, week: number) {
+    setQueuedFiles((prev) =>
+      prev.map((item, i) => (i === idx ? { ...item, week } : item))
+    );
+  }
+
+  // 주차 수가 줄어들 때 파일 week 클램핑
+  function handleWeekChange(val: number) {
+    setTotalWeeks(val);
+    setQueuedFiles((prev) =>
+      prev.map((item) => ({ ...item, week: Math.min(item.week, val) }))
+    );
   }
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -103,7 +122,7 @@ export default function CourseCreateForm() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queuedFiles]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -120,11 +139,11 @@ export default function CourseCreateForm() {
 
     const courseId = result.courseId;
 
-    // 2. 파일 업로드
+    // 2. 파일 업로드 (주차 정보 포함)
     if (queuedFiles.length > 0) {
       const supabase = createClient();
       for (let i = 0; i < queuedFiles.length; i++) {
-        const file = queuedFiles[i];
+        const { file, week } = queuedFiles[i];
         setUploadProgress(`파일 업로드 중 (${i + 1}/${queuedFiles.length}): ${file.name}`);
 
         const safeName = file.name.replace(/[^a-zA-Z0-9._\-]/g, "_");
@@ -141,7 +160,7 @@ export default function CourseCreateForm() {
           return;
         }
 
-        await saveMaterialMeta(courseId, file.name, filePath, file.type || "application/octet-stream", file.size);
+        await saveMaterialMeta(courseId, file.name, filePath, file.type || "application/octet-stream", file.size, week);
       }
     }
 
@@ -179,10 +198,51 @@ export default function CourseCreateForm() {
         <textarea
           id="description"
           name="description"
-          rows={4}
+          rows={3}
           placeholder="강의 내용을 간략히 설명해주세요."
           className="w-full px-4 py-2.5 rounded-lg bg-[#0f3460] border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
         />
+      </div>
+
+      {/* 주차 수 */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-1.5">
+          수업 주차 수 <span className="text-red-400">*</span>
+        </label>
+        <div className="flex items-center gap-3">
+          <input type="hidden" name="total_weeks" value={totalWeeks} />
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4, 6, 8, 10, 12, 16].map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => handleWeekChange(w)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
+                  totalWeeks === w
+                    ? "bg-blue-600 border-blue-500 text-white"
+                    : "bg-[#0f3460] border-gray-600 text-gray-300 hover:border-gray-400"
+                }`}
+              >
+                {w}주
+              </button>
+            ))}
+            {/* 직접 입력 */}
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                min={1}
+                max={52}
+                value={totalWeeks}
+                onChange={(e) => handleWeekChange(Math.max(1, Math.min(52, parseInt(e.target.value) || 1)))}
+                className="w-16 px-2 py-1.5 rounded-lg bg-[#0f3460] border border-gray-600 text-white text-sm text-center focus:outline-none focus:border-blue-500"
+              />
+              <span className="text-gray-400 text-sm">주 직접 입력</span>
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-1.5">
+          {totalWeeks}주차 수업 · 주차별로 강의 자료를 나눠 업로드할 수 있습니다.
+        </p>
       </div>
 
       {/* 공개 상태 */}
@@ -213,7 +273,7 @@ export default function CourseCreateForm() {
       {/* 수업 자료 첨부 */}
       <div>
         <label className="block text-sm text-gray-300 mb-2">
-          수업 자료 첨부 <span className="text-gray-500 font-normal">(선택)</span>
+          수업 자료 첨부 <span className="text-gray-500 font-normal">(선택 · 주차별 지정 가능)</span>
         </label>
 
         {/* 드래그 앤 드롭 영역 */}
@@ -224,7 +284,7 @@ export default function CourseCreateForm() {
           onClick={() => fileInputRef.current?.click()}
           className={`
             flex flex-col items-center justify-center gap-2
-            border-2 border-dashed rounded-xl px-6 py-6 text-center
+            border-2 border-dashed rounded-xl px-6 py-5 text-center
             transition-all duration-150 select-none cursor-pointer
             ${isDragging
               ? "border-blue-400 bg-blue-500/10 scale-[1.01]"
@@ -265,22 +325,33 @@ export default function CourseCreateForm() {
         {/* 대기 중인 파일 목록 */}
         {queuedFiles.length > 0 && (
           <div className="mt-3 space-y-2">
-            {queuedFiles.map((file, idx) => {
-              const cat = getFileCategory(file.type);
+            <p className="text-xs text-gray-400 mb-1">각 파일의 주차를 지정하세요</p>
+            {queuedFiles.map((item, idx) => {
+              const cat = getFileCategory(item.file.type);
               return (
                 <div
                   key={idx}
-                  className="flex items-center gap-3 bg-[#0f172a] border border-gray-700/50 rounded-lg px-4 py-2.5"
+                  className="flex items-center gap-3 bg-[#0f172a] border border-gray-700/50 rounded-lg px-3 py-2.5"
                 >
                   <span className="text-lg shrink-0">{FILE_ICON[cat]}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white truncate">{file.name}</p>
-                    <p className="text-xs text-gray-500">{formatBytes(file.size)}</p>
+                    <p className="text-sm text-white truncate">{item.file.name}</p>
+                    <p className="text-xs text-gray-500">{formatBytes(item.file.size)}</p>
                   </div>
+                  {/* 주차 선택 */}
+                  <select
+                    value={item.week}
+                    onChange={(e) => changeWeek(idx, parseInt(e.target.value))}
+                    className="shrink-0 bg-[#16213e] border border-gray-600 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                  >
+                    {Array.from({ length: totalWeeks }, (_, i) => i + 1).map((w) => (
+                      <option key={w} value={w}>{w}주차</option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     onClick={() => removeFile(idx)}
-                    className="text-gray-500 hover:text-red-400 transition-colors text-lg leading-none shrink-0"
+                    className="text-gray-500 hover:text-red-400 transition-colors text-xl leading-none shrink-0"
                   >
                     ×
                   </button>
@@ -307,9 +378,7 @@ export default function CourseCreateForm() {
           className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm transition-colors"
         >
           {submitting
-            ? uploadProgress
-              ? uploadProgress
-              : "강의 생성 중..."
+            ? (uploadProgress || "강의 생성 중...")
             : `강의 생성${queuedFiles.length > 0 ? ` + 자료 ${queuedFiles.length}개 업로드` : ""}`}
         </button>
       </div>

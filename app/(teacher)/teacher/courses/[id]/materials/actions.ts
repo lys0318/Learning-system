@@ -18,7 +18,8 @@ export async function saveMaterialMeta(
   name: string,
   filePath: string,
   fileType: string,
-  fileSize: number
+  fileSize: number,
+  weekNumber: number = 1
 ) {
   const { supabase, userId } = await getTeacher();
 
@@ -29,6 +30,7 @@ export async function saveMaterialMeta(
     file_path: filePath,
     file_type: fileType,
     file_size: fileSize,
+    week_number: weekNumber,
   });
 
   if (error) return { error: "자료 저장 중 오류가 발생했습니다." };

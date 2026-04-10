@@ -28,7 +28,7 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function MaterialUploader({ courseId }: { courseId: string }) {
+export default function MaterialUploader({ courseId, weekNumber = 1 }: { courseId: string; weekNumber?: number }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -73,7 +73,8 @@ export default function MaterialUploader({ courseId }: { courseId: string }) {
       file.name,
       filePath,
       file.type || `application/${ext}`,
-      file.size
+      file.size,
+      weekNumber
     );
 
     if (result?.error) {
