@@ -32,10 +32,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* 로고 */}
         <div className="text-center mb-8">
-          <div className="mb-4">
-            <LogoIcon size={48} />
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <LogoIcon size={40} />
+            <h1 className="text-2xl font-bold text-white">LearnAI</h1>
           </div>
-          <h1 className="text-2xl font-bold text-white">LearnAI</h1>
           <p className="text-gray-400 text-sm mt-1">AI-powered LMS</p>
         </div>
 
