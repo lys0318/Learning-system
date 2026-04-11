@@ -25,7 +25,7 @@ export default async function TeacherPage() {
 
   const { data: courses } = await supabase
     .from("courses")
-    .select("id, title, description, status, created_at, enrollments(count)")
+    .select("id, title, description, status, category, created_at, enrollments(count)")
     .eq("teacher_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -72,32 +72,32 @@ export default async function TeacherPage() {
     <main className="px-6 py-6 space-y-6">
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">담당 강의</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">담당 강의</p>
           <p className="text-2xl font-bold">{courses?.length ?? 0}개</p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-gray-400 dark:text-gray-400 dark:text-gray-500 text-xs mt-1">
             공개 {courses?.filter((c) => c.status === "published").length ?? 0}개
           </p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">총 수강생</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">총 수강생</p>
           <p className="text-2xl font-bold">{uniqueStudents}명</p>
-          <p className="text-gray-500 text-xs mt-1">전체 강의 합산</p>
+          <p className="text-gray-400 dark:text-gray-400 dark:text-gray-500 text-xs mt-1">전체 강의 합산</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">평균 진도율</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">평균 진도율</p>
           <p className="text-2xl font-bold">{avgProgress}%</p>
-          <div className="mt-2 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${avgProgress}%` }} />
           </div>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">AI 생성 퀴즈</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">AI 생성 퀴즈</p>
           <p className="text-2xl font-bold">{quizzes?.length ?? 0}개</p>
-          <p className="text-gray-500 text-xs mt-1">전체 퀴즈 수</p>
+          <p className="text-gray-400 dark:text-gray-400 dark:text-gray-500 text-xs mt-1">전체 퀴즈 수</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">평균 평점</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">평균 평점</p>
           <p className="text-2xl font-bold">
             {avgRating !== null ? (
               <span className="text-yellow-400">{avgRating.toFixed(1)}</span>
@@ -105,7 +105,7 @@ export default async function TeacherPage() {
               <span className="text-gray-500">-</span>
             )}
           </p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-gray-400 dark:text-gray-400 dark:text-gray-500 text-xs mt-1">
             {(ratings ?? []).length > 0 ? `${(ratings ?? []).length}개 평가` : "아직 평가 없음"}
           </p>
         </div>
@@ -115,7 +115,7 @@ export default async function TeacherPage() {
         {/* 강의 목록 (3/5) */}
         <div className="lg:col-span-3 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-300">내 강의 목록</h2>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">내 강의 목록</h2>
             <Link
               href="/teacher/courses/new"
               className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-medium transition-colors"
@@ -124,53 +124,76 @@ export default async function TeacherPage() {
             </Link>
           </div>
 
-          {courses && courses.length > 0 ? (
-            <div className="space-y-2">
-              {courses.map((course) => {
-                const enrollCount = (course.enrollments as { count: number }[])[0]?.count ?? 0;
-                const s = STATUS_LABEL[course.status] ?? STATUS_LABEL.draft;
-                return (
-                  <div
-                    key={course.id}
-                    className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4 flex items-start gap-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-sm truncate">{course.title}</h3>
-                        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${s.color}`}>
-                          {s.label}
-                        </span>
-                      </div>
-                      <p className="text-gray-500 text-xs">수강생 {enrollCount}명</p>
+          {courses && courses.length > 0 ? (() => {
+            // 카테고리별 그룹화
+            const grouped: Record<string, typeof courses> = {};
+            for (const c of courses) {
+              const cat = (c as unknown as { category: string | null }).category ?? "미분류";
+              if (!grouped[cat]) grouped[cat] = [];
+              grouped[cat].push(c);
+            }
+            const categoryOrder = Object.keys(grouped).sort((a, b) =>
+              a === "미분류" ? 1 : b === "미분류" ? -1 : a.localeCompare(b, "ko")
+            );
+            return (
+              <div className="space-y-4">
+                {categoryOrder.map((cat) => (
+                  <div key={cat}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{cat}</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-600">({grouped[cat].length})</span>
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700/60" />
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <Link
-                        href={`/teacher/courses/${course.id}/materials`}
-                        className="px-2.5 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-xs text-gray-300 transition-colors"
-                      >
-                        자료
-                      </Link>
-                      <Link
-                        href={`/teacher/courses/${course.id}/edit`}
-                        className="px-2.5 py-1.5 rounded-lg border border-gray-600 hover:border-gray-400 text-xs text-gray-300 transition-colors"
-                      >
-                        수정
-                      </Link>
-                      <DeleteButton
-                        action={async () => {
-                          "use server";
-                          await deleteCourse(course.id);
-                        }}
-                        confirmMessage="강의를 삭제하시겠습니까?"
-                      />
+                    <div className="space-y-2">
+                      {grouped[cat].map((course) => {
+                        const enrollCount = (course.enrollments as { count: number }[])[0]?.count ?? 0;
+                        const s = STATUS_LABEL[course.status] ?? STATUS_LABEL.draft;
+                        return (
+                          <div
+                            key={course.id}
+                            className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4 flex items-start gap-3"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-sm truncate">{course.title}</h3>
+                                <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${s.color}`}>
+                                  {s.label}
+                                </span>
+                              </div>
+                              <p className="text-gray-400 dark:text-gray-500 text-xs">수강생 {enrollCount}명</p>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Link
+                                href={`/teacher/courses/${course.id}/materials`}
+                                className="px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 text-xs text-gray-600 dark:text-gray-300 transition-colors"
+                              >
+                                자료
+                              </Link>
+                              <Link
+                                href={`/teacher/courses/${course.id}/edit`}
+                                className="px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 text-xs text-gray-600 dark:text-gray-300 transition-colors"
+                              >
+                                수정
+                              </Link>
+                              <DeleteButton
+                                action={async () => {
+                                  "use server";
+                                  await deleteCourse(course.id);
+                                }}
+                                confirmMessage="강의를 삭제하시겠습니까?"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-10 text-center">
-              <p className="text-gray-400 mb-4 text-sm">아직 개설한 강의가 없습니다.</p>
+                ))}
+              </div>
+            );
+          })() : (
+            <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-10 text-center">
+              <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">아직 개설한 강의가 없습니다.</p>
               <Link
                 href="/teacher/courses/new"
                 className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
@@ -185,17 +208,17 @@ export default async function TeacherPage() {
         <div className="lg:col-span-2 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-gray-300">최근 수강생</h2>
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">최근 수강생</h2>
               <Link href="/teacher/students" className="text-xs text-blue-400 hover:text-blue-300">전체 보기</Link>
             </div>
-            <div className="bg-[#16213e] rounded-xl border border-gray-700/50 overflow-hidden">
+            <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
               {(recentEnrollments ?? []).length > 0 ? (
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-700/50">
-                      <th className="text-left px-4 py-2.5 text-gray-400 font-medium">이름</th>
-                      <th className="text-left px-4 py-2.5 text-gray-400 font-medium">강의</th>
-                      <th className="text-right px-4 py-2.5 text-gray-400 font-medium">진도</th>
+                    <tr className="border-b border-gray-200 dark:border-gray-700/50">
+                      <th className="text-left px-4 py-2.5 text-gray-500 dark:text-gray-400 font-medium">이름</th>
+                      <th className="text-left px-4 py-2.5 text-gray-500 dark:text-gray-400 font-medium">강의</th>
+                      <th className="text-right px-4 py-2.5 text-gray-500 dark:text-gray-400 font-medium">진도</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -203,9 +226,9 @@ export default async function TeacherPage() {
                       const p = (e.profiles as unknown) as { full_name: string } | null;
                       const c = (e.courses as unknown) as { title: string } | null;
                       return (
-                        <tr key={i} className="border-b border-gray-700/30 last:border-0">
-                          <td className="px-4 py-2.5 text-white font-medium truncate max-w-[80px]">{p?.full_name ?? "-"}</td>
-                          <td className="px-4 py-2.5 text-gray-400 truncate max-w-[80px]">{c?.title ?? "-"}</td>
+                        <tr key={i} className="border-b border-gray-100 dark:border-gray-700/30 last:border-0">
+                          <td className="px-4 py-2.5 text-gray-900 dark:text-white font-medium truncate max-w-[80px]">{p?.full_name ?? "-"}</td>
+                          <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 truncate max-w-[80px]">{c?.title ?? "-"}</td>
                           <td className="px-4 py-2.5 text-right">
                             <span className={`font-medium ${e.progress >= 70 ? "text-green-400" : e.progress >= 40 ? "text-blue-400" : "text-yellow-400"}`}>
                               {e.progress}%
@@ -217,17 +240,17 @@ export default async function TeacherPage() {
                   </tbody>
                 </table>
               ) : (
-                <p className="text-gray-500 text-xs text-center py-6">수강생이 없습니다</p>
+                <p className="text-gray-400 dark:text-gray-500 text-xs text-center py-6">수강생이 없습니다</p>
               )}
             </div>
           </div>
 
           {/* AI 인사이트 */}
           <div>
-            <h2 className="text-sm font-semibold text-gray-300 mb-3">AI 인사이트</h2>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">AI 인사이트</h2>
             <div className="space-y-2">
-              <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-                <p className="text-xs text-gray-400 mb-1">퀴즈 현황</p>
+              <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">퀴즈 현황</p>
                 <p className="text-sm font-medium">
                   {(quizzes?.length ?? 0) > 0
                     ? `AI 퀴즈 ${quizzes?.length}개 생성됨`
@@ -238,7 +261,7 @@ export default async function TeacherPage() {
                 </Link>
               </div>
               <div className="bg-[#16213e] rounded-xl border border-blue-500/20 p-4">
-                <p className="text-xs text-gray-400 mb-1">💡 추천</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">💡 추천</p>
                 <p className="text-sm font-medium">수강생 학습 자료를 업로드하고 AI 퀴즈를 생성해보세요</p>
                 <Link href="/teacher/quizzes/new" className="mt-2 inline-block px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-medium transition-colors">
                   AI 퀴즈 생성
@@ -250,10 +273,10 @@ export default async function TeacherPage() {
           {/* 최근 평가 */}
           {(ratings ?? []).length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-300 mb-3">최근 수강생 평가</h2>
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">최근 수강생 평가</h2>
               <div className="space-y-2">
                 {(ratings ?? []).slice(0, 3).map((r, i) => (
-                  <div key={i} className="bg-[#16213e] rounded-xl border border-gray-700/50 p-3">
+                  <div key={i} className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-gray-400">익명</span>
                       <span className="text-yellow-400 text-xs">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>

@@ -34,7 +34,7 @@ export default async function MyCoursesPage() {
     <main className="px-6 py-6">
       <div className="mb-5">
         <h1 className="text-lg font-semibold">내 강의</h1>
-        <p className="text-gray-400 text-xs mt-0.5">수강 중인 강의 {enrollments?.length ?? 0}개</p>
+        <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">수강 중인 강의 {enrollments?.length ?? 0}개</p>
       </div>
 
       {enrollments && enrollments.length > 0 ? (
@@ -53,7 +53,7 @@ export default async function MyCoursesPage() {
             const completed = e.status === "completed";
 
             return (
-              <div key={e.id} className="bg-[#16213e] rounded-xl border border-gray-700/50 overflow-hidden flex flex-col">
+              <div key={e.id} className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden flex flex-col">
                 {/* 썸네일 */}
                 <div className={`h-32 bg-gradient-to-br ${color} flex items-center justify-center shrink-0`}>
                   <span className="text-4xl">{emoji}</span>
@@ -68,7 +68,7 @@ export default async function MyCoursesPage() {
                     >
                       {course?.title}
                     </Link>
-                    <p className="text-gray-400 text-xs mt-0.5">
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">
                       {course?.profiles?.full_name ?? "-"} 선생님
                       {materialCount > 0 && (
                         <span className="ml-1.5 text-gray-500">· {materialCount}강</span>
@@ -88,7 +88,7 @@ export default async function MyCoursesPage() {
                         </span>
                       )}
                     </div>
-                    <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${completed ? "bg-green-500" : "bg-blue-500"}`}
                         style={{ width: `${e.progress}%` }}
@@ -97,7 +97,7 @@ export default async function MyCoursesPage() {
                   </div>
 
                   {/* 버튼 */}
-                  <div className="flex gap-2 pt-1 border-t border-gray-700/40 mt-auto">
+                  <div className="flex gap-2 pt-1 border-t border-gray-200 dark:border-gray-700/40 mt-auto">
                     <Link
                       href={`/student/courses/${course?.id}`}
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-gray-300 text-xs font-medium transition-colors"
@@ -117,7 +117,7 @@ export default async function MyCoursesPage() {
           })}
         </div>
       ) : (
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-16 text-center">
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-16 text-center">
           <p className="text-gray-400 mb-4">수강 중인 강의가 없습니다.</p>
           <Link
             href="/student/courses"

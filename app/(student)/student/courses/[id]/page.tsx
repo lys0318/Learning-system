@@ -89,9 +89,35 @@ export default async function StudentCourseDetailPage({
 
   const completedQuizIds = [...new Set((quizResults ?? []).map((r) => r.quiz_id as string))];
 
-  // 자료 + 퀴즈 기반 진도율 계산
-  const totalItems = materialsWithUrls.length + (quizzes ?? []).length;
-  const doneItems = completedMaterialIds.length + completedQuizIds.length;
+  // 이 강의의 과제 목록
+  const { data: assignments } = await admin
+    .from("assignments")
+    .select("id, title, language, week_number, deadline")
+    .eq("course_id", courseId)
+    .order("week_number", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  // 이 학생의 과제 제출 현황 (성공한 것만)
+  const assignmentIds = (assignments ?? []).map((a) => a.id);
+  const { data: assignmentSubmissions } = assignmentIds.length > 0
+    ? await supabase
+        .from("assignment_submissions")
+        .select("assignment_id, run_status")
+        .eq("student_id", user.id)
+        .in("assignment_id", assignmentIds)
+    : { data: [] };
+
+  // 과제별 최신 제출 상태 (성공 여부)
+  const submittedAssignmentMap = new Map<string, string>();
+  for (const s of assignmentSubmissions ?? []) {
+    if (!submittedAssignmentMap.has(s.assignment_id)) {
+      submittedAssignmentMap.set(s.assignment_id, s.run_status);
+    }
+  }
+
+  // 자료 + 퀴즈 + 과제 기반 진도율 계산
+  const totalItems = materialsWithUrls.length + (quizzes ?? []).length + (assignments ?? []).length;
+  const doneItems = completedMaterialIds.length + completedQuizIds.length + submittedAssignmentMap.size;
   const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : enrollment.progress;
 
   return (
@@ -104,25 +130,33 @@ export default async function StudentCourseDetailPage({
       </nav>
 
       {/* 강의 헤더 */}
-      <div className="bg-[#16213e] rounded-2xl border border-gray-700/50 p-6 mb-6">
+      <div className="bg-white dark:bg-[#16213e] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-6 mb-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold">{course.title}</h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
               {teacher?.full_name ? `${teacher.full_name} 선생님` : "선생님"} · {totalWeeks}주차 수업
             </p>
             {(course as unknown as { description: string | null }).description && (
-              <p className="text-gray-300 text-sm mt-3 leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 text-sm mt-3 leading-relaxed">
                 {(course as unknown as { description: string }).description}
               </p>
             )}
           </div>
-          <Link
-            href={`/student/courses/${courseId}/chat`}
-            className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 text-sm font-medium transition-colors"
-          >
-            🎓 AI 튜터
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/student/courses/${courseId}/assignments`}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700/50 border border-gray-200 dark:border-gray-700/50 text-gray-700 dark:text-gray-300 text-sm font-medium transition-colors"
+            >
+              💻 과제
+            </Link>
+            <Link
+              href={`/student/courses/${courseId}/chat`}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 text-sm font-medium transition-colors"
+            >
+              🎓 AI 튜터
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -144,6 +178,15 @@ export default async function StudentCourseDetailPage({
           week_number: (q as unknown as { week_number: number }).week_number ?? 1,
           difficulty: (q as unknown as { difficulty: string }).difficulty ?? "normal",
           questionCount: Array.isArray(q.questions) ? (q.questions as unknown[]).length : 0,
+        }))}
+        assignments={(assignments ?? []).map((a) => ({
+          id: a.id,
+          title: a.title,
+          language: (a as unknown as { language: string }).language,
+          week_number: (a as unknown as { week_number: number }).week_number ?? 1,
+          deadline: (a as unknown as { deadline: string | null }).deadline ?? null,
+          submitted: submittedAssignmentMap.has(a.id),
+          submitStatus: submittedAssignmentMap.get(a.id) ?? null,
         }))}
         initialCompletedIds={completedMaterialIds}
         initialCompletedQuizIds={completedQuizIds}

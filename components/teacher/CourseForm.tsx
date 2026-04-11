@@ -10,6 +10,7 @@ interface Course {
   title: string;
   description: string | null;
   status: string;
+  category?: string | null;
 }
 
 interface Props {
@@ -21,6 +22,10 @@ const STATUS_OPTIONS = [
   { value: "draft", label: "초안", desc: "아직 공개되지 않은 강의" },
   { value: "published", label: "공개", desc: "수강생에게 공개된 강의" },
   { value: "archived", label: "보관", desc: "더 이상 수강 신청 불가" },
+];
+
+const CATEGORY_OPTIONS = [
+  "프로그래밍", "수학", "영어", "과학", "국어", "역사", "사회", "음악", "미술", "체육", "기타",
 ];
 
 export default function CourseForm({ action, course }: Props) {
@@ -67,6 +72,24 @@ export default function CourseForm({ action, course }: Props) {
           placeholder="강의 내용을 간략히 설명해주세요."
           className="w-full px-4 py-2.5 rounded-lg bg-[#0f3460] border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
         />
+      </div>
+
+      {/* 카테고리 */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-1.5" htmlFor="category">
+          카테고리 <span className="text-gray-500 font-normal">(선택)</span>
+        </label>
+        <select
+          id="category"
+          name="category"
+          defaultValue={course?.category ?? ""}
+          className="w-full px-4 py-2.5 rounded-lg bg-[#0f3460] border border-gray-600 text-white focus:outline-none focus:border-blue-500 transition-colors"
+        >
+          <option value="">카테고리 없음</option>
+          {CATEGORY_OPTIONS.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
       </div>
 
       {/* 공개 상태 */}

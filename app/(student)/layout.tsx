@@ -23,7 +23,7 @@ export default async function StudentLayout({
   if (profile?.role !== "student") redirect("/login");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#1a1a2e] text-white">
+    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
       <StudentSidebar userName={profile.full_name ?? ""} />
       <div className="flex-1 flex flex-col min-w-0">
         <StudentTopbar />

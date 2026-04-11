@@ -97,25 +97,25 @@ export default async function AdminTeachersPage() {
     <main className="px-6 py-6 space-y-6">
       {/* 요약 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">전체 강사</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">전체 강사</p>
           <p className="text-2xl font-bold">{teacherStats.length}명</p>
-          <p className="text-gray-500 text-xs mt-1">등록된 강사</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">등록된 강사</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">평균 품질 점수</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">평균 품질 점수</p>
           <p className="text-2xl font-bold text-purple-400">{avgQuality}점</p>
-          <p className="text-gray-500 text-xs mt-1">평점 60% + 수료율 40%</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">평점 60% + 수료율 40%</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">우수 강사</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">우수 강사</p>
           <p className="text-2xl font-bold text-green-400">{lowRiskCount}명</p>
-          <p className="text-gray-500 text-xs mt-1">품질 점수 70점 이상</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">품질 점수 70점 이상</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">최우수 강사</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">최우수 강사</p>
           <p className="text-lg font-bold truncate">{topTeacher?.name ?? "-"}</p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
             {topTeacher ? `품질 ${topTeacher.qualityScore}점` : "데이터 없음"}
           </p>
         </div>
@@ -124,14 +124,14 @@ export default async function AdminTeachersPage() {
       {/* 강사 목록 */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-300">강사 품질 모니터링</h2>
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">강사 품질 모니터링</h2>
           <p className="text-xs text-gray-500">품질 점수 기준 내림차순</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 overflow-hidden">
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
           {teacherStats.length > 0 ? (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-700/50 text-xs text-gray-400">
+                <tr className="border-b border-gray-200 dark:border-gray-700/50 text-xs text-gray-400">
                   <th className="text-left px-4 py-3 font-medium">강사명</th>
                   <th className="text-center px-3 py-3 font-medium">강의</th>
                   <th className="text-center px-3 py-3 font-medium">수강생</th>
@@ -145,7 +145,7 @@ export default async function AdminTeachersPage() {
                 {teacherStats.map((t, i) => {
                   const badge = qualityBadge(t.qualityScore);
                   return (
-                    <tr key={t.id} className="border-b border-gray-700/30 last:border-0 hover:bg-gray-700/10 transition-colors">
+                    <tr key={t.id} className="border-b border-gray-100 dark:border-gray-700/30 last:border-0 hover:bg-gray-700/10 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 rounded-full bg-purple-900 flex items-center justify-center text-xs font-medium text-purple-300 shrink-0">
@@ -157,8 +157,8 @@ export default async function AdminTeachersPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-center text-xs text-gray-300">{t.courseCount}개</td>
-                      <td className="px-3 py-3 text-center text-xs text-gray-300">{t.studentCount}명</td>
+                      <td className="px-3 py-3 text-center text-xs text-gray-600 dark:text-gray-300">{t.courseCount}개</td>
+                      <td className="px-3 py-3 text-center text-xs text-gray-600 dark:text-gray-300">{t.studentCount}명</td>
                       <td className="px-4 py-3">
                         <div>
                           {stars(t.avgRating)}
@@ -172,7 +172,7 @@ export default async function AdminTeachersPage() {
                           <span className={`text-xs font-semibold ${t.completionRate >= 60 ? "text-green-400" : t.completionRate >= 30 ? "text-yellow-400" : "text-red-400"}`}>
                             {t.completionRate}%
                           </span>
-                          <div className="mt-1 h-1 bg-gray-700 rounded-full overflow-hidden w-16 mx-auto">
+                          <div className="mt-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden w-16 mx-auto">
                             <div
                               className={`h-full rounded-full ${t.completionRate >= 60 ? "bg-green-500" : t.completionRate >= 30 ? "bg-yellow-500" : "bg-red-500"}`}
                               style={{ width: `${t.completionRate}%` }}
@@ -182,7 +182,7 @@ export default async function AdminTeachersPage() {
                       </td>
                       <td className="px-3 py-3 text-center">
                         <div className="flex flex-col items-center gap-1">
-                          <span className="text-lg font-bold text-white">{t.qualityScore}</span>
+                          <span className="text-lg font-bold text-gray-900 dark:text-white">{t.qualityScore}</span>
                           {i === 0 && <span className="text-yellow-400 text-xs">🏆</span>}
                         </div>
                       </td>
@@ -203,8 +203,8 @@ export default async function AdminTeachersPage() {
       </div>
 
       {/* 품질 기준 안내 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-        <h3 className="text-xs font-semibold text-gray-400 mb-3">품질 점수 산정 기준</h3>
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-3">품질 점수 산정 기준</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           {[
             { label: "우수", range: "80점 이상", color: "text-green-400", desc: "탁월한 수업 품질" },
@@ -212,7 +212,7 @@ export default async function AdminTeachersPage() {
             { label: "보통", range: "40~59점", color: "text-yellow-400", desc: "개선 권장" },
             { label: "관리필요", range: "40점 미만", color: "text-red-400", desc: "즉각 개입 필요" },
           ].map((g) => (
-            <div key={g.label} className="bg-gray-800/40 rounded-lg p-3">
+            <div key={g.label} className="bg-gray-100 dark:bg-gray-800/40 rounded-lg p-3">
               <p className={`font-semibold ${g.color}`}>{g.label} ({g.range})</p>
               <p className="text-gray-500 mt-0.5">{g.desc}</p>
             </div>

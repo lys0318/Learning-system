@@ -17,6 +17,7 @@ export async function createCourse(_: unknown, formData: FormData) {
   const title = (formData.get("title") as string).trim();
   const description = (formData.get("description") as string).trim();
   const status = formData.get("status") as string;
+  const category = (formData.get("category") as string).trim();
 
   if (!title) return { error: "강의명을 입력해주세요." };
 
@@ -25,6 +26,7 @@ export async function createCourse(_: unknown, formData: FormData) {
     title,
     description: description || null,
     status,
+    category: category || null,
   });
 
   if (error) return { error: "강의 생성 중 오류가 발생했습니다." };
@@ -40,12 +42,13 @@ export async function createCourseAndReturn(formData: FormData): Promise<{ cours
   const description = (formData.get("description") as string).trim();
   const status = formData.get("status") as string;
   const totalWeeks = parseInt(formData.get("total_weeks") as string) || 4;
+  const category = (formData.get("category") as string).trim();
 
   if (!title) return { error: "강의명을 입력해주세요." };
 
   const { data, error } = await supabase
     .from("courses")
-    .insert({ teacher_id: userId, title, description: description || null, status, total_weeks: totalWeeks })
+    .insert({ teacher_id: userId, title, description: description || null, status, total_weeks: totalWeeks, category: category || null })
     .select("id")
     .single();
 
@@ -61,12 +64,13 @@ export async function updateCourse(_: unknown, formData: FormData) {
   const title = (formData.get("title") as string).trim();
   const description = (formData.get("description") as string).trim();
   const status = formData.get("status") as string;
+  const category = (formData.get("category") as string).trim();
 
   if (!title) return { error: "강의명을 입력해주세요." };
 
   const { error } = await supabase
     .from("courses")
-    .update({ title, description: description || null, status })
+    .update({ title, description: description || null, status, category: category || null })
     .eq("id", id)
     .eq("teacher_id", userId); // RLS 이중 보호
 

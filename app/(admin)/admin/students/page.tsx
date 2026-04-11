@@ -132,44 +132,44 @@ export default async function AdminStudentsPage() {
     <main className="px-6 py-6 space-y-6">
       {/* 요약 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">전체 수강생</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">전체 수강생</p>
           <p className="text-2xl font-bold">{stats.length}명</p>
-          <p className="text-gray-500 text-xs mt-1">등록된 계정</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">등록된 계정</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-red-500/30 p-4">
-          <p className="text-gray-400 text-xs mb-2">이탈 위험 수강생</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-red-500/30 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">이탈 위험 수강생</p>
           <p className="text-2xl font-bold text-red-400">{highRiskCount}명</p>
-          <p className="text-gray-500 text-xs mt-1">주의 {medRiskCount}명 포함</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">주의 {medRiskCount}명 포함</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">평균 출석률</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">평균 출석률</p>
           <p className="text-2xl font-bold text-blue-400">{avgAttendance}%</p>
-          <div className="mt-2 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${avgAttendance}%` }} />
           </div>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">평균 퀴즈 점수</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">평균 퀴즈 점수</p>
           <p className="text-2xl font-bold text-indigo-400">
             {overallAvgQuiz !== null ? `${overallAvgQuiz}점` : "-"}
           </p>
-          <p className="text-gray-500 text-xs mt-1">퀴즈 응시자 기준</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">퀴즈 응시자 기준</p>
         </div>
       </div>
 
       {/* 수강생 모니터링 테이블 */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-300">수강생 모니터링</h2>
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">수강생 모니터링</h2>
           <p className="text-xs text-gray-500">이탈 위험도 높은 순</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 overflow-hidden">
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
           {stats.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[780px]">
                 <thead>
-                  <tr className="border-b border-gray-700/50 text-xs text-gray-400">
+                  <tr className="border-b border-gray-200 dark:border-gray-700/50 text-xs text-gray-400">
                     <th className="text-left px-4 py-3 font-medium">수강생</th>
                     <th className="text-center px-3 py-3 font-medium">수강 강의</th>
                     <th className="text-center px-3 py-3 font-medium">이탈 위험도</th>
@@ -185,7 +185,7 @@ export default async function AdminStudentsPage() {
                     const badge = riskBadge(s.attritionRisk);
                     const bar = riskBar(s.attritionRisk);
                     return (
-                      <tr key={s.id} className="border-b border-gray-700/30 last:border-0 hover:bg-gray-700/10 transition-colors">
+                      <tr key={s.id} className="border-b border-gray-100 dark:border-gray-700/30 last:border-0 hover:bg-gray-700/10 transition-colors">
                         {/* 수강생 */}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
@@ -200,7 +200,7 @@ export default async function AdminStudentsPage() {
                         </td>
 
                         {/* 수강 강의 */}
-                        <td className="px-3 py-3 text-center text-xs text-gray-300">{s.courseCount}개</td>
+                        <td className="px-3 py-3 text-center text-xs text-gray-600 dark:text-gray-300">{s.courseCount}개</td>
 
                         {/* 이탈 위험도 */}
                         <td className="px-3 py-3">
@@ -213,7 +213,7 @@ export default async function AdminStudentsPage() {
                                 {badge.label}
                               </span>
                             </div>
-                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden w-20">
+                            <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden w-20">
                               <div className={`h-full rounded-full ${bar.color}`} style={{ width: bar.width }} />
                             </div>
                           </div>
@@ -225,7 +225,7 @@ export default async function AdminStudentsPage() {
                             <span className={`text-xs font-semibold ${s.attendanceRate >= 60 ? "text-blue-400" : s.attendanceRate >= 30 ? "text-yellow-400" : "text-gray-500"}`}>
                               {s.attendanceRate}%
                             </span>
-                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden w-20">
+                            <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden w-20">
                               <div
                                 className={`h-full rounded-full ${s.attendanceRate >= 60 ? "bg-blue-500" : s.attendanceRate >= 30 ? "bg-yellow-500" : "bg-gray-600"}`}
                                 style={{ width: `${s.attendanceRate}%` }}
@@ -237,8 +237,8 @@ export default async function AdminStudentsPage() {
                         {/* 평균 진도 */}
                         <td className="px-3 py-3">
                           <div className="flex flex-col items-center gap-1">
-                            <span className="text-xs font-semibold text-gray-300">{s.avgProgress}%</span>
-                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden w-20">
+                            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">{s.avgProgress}%</span>
+                            <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden w-20">
                               <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${s.avgProgress}%` }} />
                             </div>
                           </div>
@@ -291,11 +291,11 @@ export default async function AdminStudentsPage() {
       </div>
 
       {/* 지표 설명 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-        <h3 className="text-xs font-semibold text-gray-400 mb-3">지표 산정 기준</h3>
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-3">지표 산정 기준</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs text-gray-500">
           <div>
-            <p className="text-gray-300 font-medium mb-1">🚨 이탈 위험도</p>
+            <p className="text-gray-600 dark:text-gray-300 font-medium mb-1">🚨 이탈 위험도</p>
             <ul className="space-y-0.5 leading-relaxed">
               <li>· 평균 진도 20% 미만: +35점</li>
               <li>· 14일 이상 미접속: +40점</li>
@@ -305,7 +305,7 @@ export default async function AdminStudentsPage() {
             </ul>
           </div>
           <div>
-            <p className="text-gray-300 font-medium mb-1">📅 출석률</p>
+            <p className="text-gray-600 dark:text-gray-300 font-medium mb-1">📅 출석률</p>
             <ul className="space-y-0.5 leading-relaxed">
               <li>· AI 튜터 채팅 또는 퀴즈 응시가 있었던 날짜</li>
               <li>· 수강 등록 이후 경과일 대비 활동 일수 비율</li>

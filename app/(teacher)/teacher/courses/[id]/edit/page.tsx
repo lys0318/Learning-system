@@ -24,7 +24,7 @@ export default async function EditCoursePage({ params }: Props) {
 
   const { data: course } = await supabase
     .from("courses")
-    .select("id, title, description, status")
+    .select("id, title, description, status, category")
     .eq("id", id)
     .eq("teacher_id", user.id)
     .single();

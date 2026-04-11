@@ -74,36 +74,36 @@ export default async function StudentPage() {
     <main className="px-6 py-6 space-y-6">
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">수강 중인 강의</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">수강 중인 강의</p>
           <p className="text-2xl font-bold">{active.length}</p>
-          <p className="text-gray-500 text-xs mt-1">완강 {completed.length}개</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">완강 {completed.length}개</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">전체 학습 진도</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">전체 학습 진도</p>
           <p className="text-2xl font-bold">{avgProgress}%</p>
-          <div className="mt-2 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${avgProgress}%` }} />
           </div>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">완료한 퀴즈</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">완료한 퀴즈</p>
           <p className="text-2xl font-bold">{quizCount}개</p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
             {avgScore !== null ? `평균 점수 ${avgScore}점` : "아직 응시 전"}
           </p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">AI 튜터 질문</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">AI 튜터 질문</p>
           <p className="text-2xl font-bold">{aiCount}회</p>
-          <p className="text-gray-500 text-xs mt-1">누적 질문 수</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">누적 질문 수</p>
         </div>
       </div>
 
       {/* 수강 중 */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-300 mb-3">
-          수강 중 <span className="text-gray-500 font-normal">({active.length})</span>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+          수강 중 <span className="text-gray-400 dark:text-gray-500 font-normal">({active.length})</span>
         </h2>
         {active.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -114,7 +114,7 @@ export default async function StudentPage() {
               const isCompleted = e.status === "completed";
               const myRating = isCompleted ? ratingMap[e.course_id as string] : undefined;
               return (
-                <div key={e.id} className={`bg-[#16213e] rounded-xl border overflow-hidden ${isCompleted ? "border-green-500/30" : "border-gray-700/50"}`}>
+                <div key={e.id} className={`bg-white dark:bg-[#16213e] rounded-xl border overflow-hidden ${isCompleted ? "border-green-500/30" : "border-gray-200 dark:border-gray-700/50"}`}>
                   {/* 썸네일 */}
                   <div className={`h-20 bg-gradient-to-br ${color} flex items-center justify-center`}>
                     <span className="text-3xl">{emoji}</span>
@@ -128,7 +128,7 @@ export default async function StudentPage() {
                         >
                           {course?.title}
                         </Link>
-                        <p className="text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {isCompleted && (
@@ -154,9 +154,10 @@ export default async function StudentPage() {
                       <div className="flex justify-between text-xs">
                         <span className={isCompleted ? "text-green-400 font-medium" : "text-gray-400"}>
                           {isCompleted ? "완강 ✓" : `${e.progress}% 완료`}
+
                         </span>
                       </div>
-                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${isCompleted ? "bg-green-500" : ""}`}
                           style={{
@@ -168,7 +169,7 @@ export default async function StudentPage() {
                     </div>
                     {/* 완강 평가 버튼 */}
                     {isCompleted && course?.teacher_id && (
-                      <div className="pt-1 border-t border-gray-700/40">
+                      <div className="pt-1 border-t border-gray-200 dark:border-gray-700/40">
                         <RatingButton
                           courseId={e.course_id as string}
                           teacherId={course.teacher_id}
@@ -184,8 +185,8 @@ export default async function StudentPage() {
             })}
           </div>
         ) : (
-          <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-10 text-center">
-            <p className="text-gray-400 mb-4">수강 중인 강의가 없습니다.</p>
+          <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-10 text-center">
+            <p className="text-gray-500 dark:text-gray-400 mb-4">수강 중인 강의가 없습니다.</p>
             <Link href="/student/courses" className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors">
               강의 둘러보기
             </Link>
@@ -200,7 +201,7 @@ export default async function StudentPage() {
             <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center text-xl shrink-0">🤖</div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">AI 튜터와 함께 학습하세요</p>
-              <p className="text-gray-400 text-xs mt-0.5">강의 내용에 대해 자유롭게 질문하고 맞춤형 설명을 받아보세요</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">강의 내용에 대해 자유롭게 질문하고 맞춤형 설명을 받아보세요</p>
             </div>
             <Link
               href="/student/ai-tutor"

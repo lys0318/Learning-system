@@ -21,13 +21,13 @@ export default async function TeacherAccountPage() {
       <h1 className="text-lg font-semibold">계정 관리</h1>
 
       {/* 프로필 카드 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-5 flex items-center gap-4">
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-5 flex items-center gap-4">
         <div className="w-14 h-14 rounded-full bg-indigo-900 flex items-center justify-center text-lg font-bold text-indigo-300 shrink-0">
           {initial}
         </div>
         <div>
           <p className="text-base font-semibold">{profile.full_name ?? "-"}</p>
-          <p className="text-sm text-gray-400">{user.email}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
           <span className="mt-1 inline-block text-xs px-2 py-0.5 rounded-full bg-indigo-600/20 text-indigo-300 border border-indigo-500/30">
             선생님
           </span>
@@ -35,33 +35,33 @@ export default async function TeacherAccountPage() {
       </div>
 
       {/* 계정 정보 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-5 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-300 mb-3">계정 정보</h2>
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">계정 정보</h2>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-400">이름</span>
+          <span className="text-gray-500 dark:text-gray-400">이름</span>
           <span>{profile.full_name ?? "-"}</span>
         </div>
-        <div className="border-t border-gray-700/40" />
+        <div className="border-t border-gray-200 dark:border-gray-700/40" />
         <div className="flex justify-between text-sm">
-          <span className="text-gray-400">이메일</span>
+          <span className="text-gray-500 dark:text-gray-400">이메일</span>
           <span>{user.email}</span>
         </div>
-        <div className="border-t border-gray-700/40" />
+        <div className="border-t border-gray-200 dark:border-gray-700/40" />
         <div className="flex justify-between text-sm">
-          <span className="text-gray-400">역할</span>
+          <span className="text-gray-500 dark:text-gray-400">역할</span>
           <span>선생님</span>
         </div>
-        <div className="border-t border-gray-700/40" />
+        <div className="border-t border-gray-200 dark:border-gray-700/40" />
         <div className="flex justify-between text-sm">
-          <span className="text-gray-400">가입일</span>
+          <span className="text-gray-500 dark:text-gray-400">가입일</span>
           <span>{new Date(user.created_at).toLocaleDateString("ko-KR")}</span>
         </div>
       </div>
 
       {/* 회원 탈퇴 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-5">
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-5">
         <h2 className="text-sm font-semibold text-red-400 mb-2">주의사항</h2>
-        <p className="text-xs text-gray-400 mb-4">계정을 삭제하면 담당 강의 및 모든 데이터가 영구 삭제됩니다.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">계정을 삭제하면 담당 강의 및 모든 데이터가 영구 삭제됩니다.</p>
         <DeleteAccountButton />
       </div>
     </main>

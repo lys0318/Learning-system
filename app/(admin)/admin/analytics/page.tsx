@@ -60,8 +60,8 @@ export default async function AdminAnalyticsPage() {
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {statCards.map((s) => (
-          <div key={s.label} className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-            <p className="text-gray-400 text-xs mb-2">{s.label}</p>
+          <div key={s.label} className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+            <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">{s.label}</p>
             <p className="text-2xl font-bold">{s.value}</p>
             <p className="text-gray-500 text-xs mt-1">{s.sub}</p>
           </div>
@@ -69,16 +69,16 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       {/* AI 학습 분석 리포트 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-6">
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-6">
         <h2 className="text-sm font-semibold mb-5">AI 학습 분석 리포트</h2>
         <div className="space-y-5">
           {metrics.map((m) => (
             <div key={m.label}>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-300">{m.label}</span>
+                <span className="text-gray-600 dark:text-gray-300">{m.label}</span>
                 <span className="font-semibold">{m.value}%</span>
               </div>
-              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full ${m.color} transition-all`}
                   style={{ width: `${m.value}%` }}
@@ -91,7 +91,7 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       {/* 퀴즈 점수 분포 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-6">
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-6">
         <h2 className="text-sm font-semibold mb-4">퀴즈 점수 분포</h2>
         {allScores.length > 0 ? (
           <div className="grid grid-cols-3 gap-4 text-center">
@@ -100,9 +100,9 @@ export default async function AdminAnalyticsPage() {
               { label: "70~89점", count: allScores.filter((s) => s >= 70 && s < 90).length, color: "text-blue-400" },
               { label: "70점 미만", count: allScores.filter((s) => s < 70).length, color: "text-yellow-400" },
             ].map((b) => (
-              <div key={b.label} className="bg-gray-800/50 rounded-xl p-4">
+              <div key={b.label} className="bg-gray-100 dark:bg-gray-800/50 rounded-xl p-4">
                 <p className={`text-2xl font-bold ${b.color}`}>{b.count}</p>
-                <p className="text-xs text-gray-400 mt-1">{b.label}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{b.label}</p>
               </div>
             ))}
           </div>

@@ -32,30 +32,30 @@ export default async function AdminCoursesPage() {
     <main className="px-6 py-6 space-y-6">
       {/* 요약 */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">전체 강의</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">전체 강의</p>
           <p className="text-2xl font-bold">{courses?.length ?? 0}개</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">공개 강의</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">공개 강의</p>
           <p className="text-2xl font-bold">{(courses ?? []).filter((c) => c.status === "published").length}개</p>
         </div>
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-4">
-          <p className="text-gray-400 text-xs mb-2">총 수강 등록</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">총 수강 등록</p>
           <p className="text-2xl font-bold">{totalEnroll}건</p>
         </div>
       </div>
 
       {/* 강의 목록 */}
-      <div className="bg-[#16213e] rounded-xl border border-gray-700/50 overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-gray-700/50">
+      <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-gray-200 dark:border-gray-700/50">
           <h2 className="text-sm font-semibold">전체 강의 목록</h2>
         </div>
         {(courses ?? []).length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-700/50 text-xs text-gray-400">
+                <tr className="border-b border-gray-200 dark:border-gray-700/50 text-xs text-gray-400">
                   <th className="text-left px-5 py-3 font-medium">강의명</th>
                   <th className="text-left px-5 py-3 font-medium">교사</th>
                   <th className="text-right px-5 py-3 font-medium">수강생</th>
@@ -69,11 +69,11 @@ export default async function AdminCoursesPage() {
                   const enrollCnt = (c.enrollments as { count: number }[])[0]?.count ?? 0;
                   const s = statusLabel[c.status] ?? statusLabel.draft;
                   return (
-                    <tr key={c.id} className="border-b border-gray-700/30 last:border-0 hover:bg-gray-700/10 transition-colors">
+                    <tr key={c.id} className="border-b border-gray-100 dark:border-gray-700/30 last:border-0 hover:bg-gray-700/10 transition-colors">
                       <td className="px-5 py-3 font-medium max-w-[200px] truncate">{c.title}</td>
-                      <td className="px-5 py-3 text-gray-400 text-xs">{teacher?.full_name ?? "-"}</td>
-                      <td className="px-5 py-3 text-right text-xs text-gray-300">{enrollCnt}명</td>
-                      <td className="px-5 py-3 text-xs text-gray-400">
+                      <td className="px-5 py-3 text-gray-500 dark:text-gray-400 text-xs">{teacher?.full_name ?? "-"}</td>
+                      <td className="px-5 py-3 text-right text-xs text-gray-600 dark:text-gray-300">{enrollCnt}명</td>
+                      <td className="px-5 py-3 text-xs text-gray-500 dark:text-gray-400">
                         {new Date(c.created_at).toLocaleDateString("ko-KR")}
                       </td>
                       <td className="px-5 py-3">

@@ -28,7 +28,7 @@ export default async function TeacherQuizzesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold">퀴즈 관리</h1>
-          <p className="text-gray-400 text-sm mt-0.5">총 {quizzes?.length ?? 0}개 퀴즈</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">총 {quizzes?.length ?? 0}개 퀴즈</p>
         </div>
         <Link
           href="/teacher/quizzes/new"
@@ -55,7 +55,7 @@ export default async function TeacherQuizzesPage() {
             return (
               <div
                 key={quiz.id}
-                className="bg-[#16213e] rounded-xl border border-gray-700/50 p-5 flex items-start gap-4"
+                className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-5 flex items-start gap-4"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -70,8 +70,8 @@ export default async function TeacherQuizzesPage() {
                       {questionCount}문항
                     </span>
                   </div>
-                  <p className="text-gray-400 text-sm">{course?.title ?? "강의 없음"}</p>
-                  <p className="text-gray-500 text-xs mt-2">제출 {resultCount}회</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">{course?.title ?? "강의 없음"}</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-2">제출 {resultCount}회</p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
@@ -94,8 +94,8 @@ export default async function TeacherQuizzesPage() {
           })}
         </div>
       ) : (
-        <div className="bg-[#16213e] rounded-xl border border-gray-700/50 p-16 text-center">
-          <p className="text-gray-400 mb-4">아직 생성한 퀴즈가 없습니다.</p>
+        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-16 text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">아직 생성한 퀴즈가 없습니다.</p>
           <Link
             href="/teacher/quizzes/new"
             className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"

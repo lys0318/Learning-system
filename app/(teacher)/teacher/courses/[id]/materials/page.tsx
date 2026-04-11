@@ -55,11 +55,19 @@ export default async function CourseMaterialsPage({
         <span className="text-white">학습 자료</span>
       </nav>
 
-      <div className="mb-6">
-        <h1 className="text-xl font-bold">학습 자료 관리</h1>
-        <p className="text-gray-400 text-sm mt-0.5">
-          {course.title} · {totalWeeks}주차 수업 · 총 {materials?.length ?? 0}개 파일
-        </p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold">학습 자료 관리</h1>
+          <p className="text-gray-400 text-sm mt-0.5">
+            {course.title} · {totalWeeks}주차 수업 · 총 {materials?.length ?? 0}개 파일
+          </p>
+        </div>
+        <Link
+          href={`/teacher/courses/${courseId}/assignments`}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 text-xs text-gray-600 dark:text-gray-300 transition-colors"
+        >
+          💻 코딩 과제
+        </Link>
       </div>
 
       <WeeklyMaterials
