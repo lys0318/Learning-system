@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/(auth)/logout/actions";
 import ThemeToggle from "@/components/ThemeToggle";
+import LogoIcon from "@/components/LogoIcon";
 
 const NAV = [
   { href: "/student", label: "대시보드", exact: true },
@@ -29,9 +30,7 @@ export default function StudentSidebar({ userName }: { userName: string }) {
       {/* 로고 */}
       <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700/50">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0 text-white">
-            AI
-          </div>
+          <LogoIcon size={32} />
           <div>
             <p className="font-semibold text-sm leading-tight text-gray-900 dark:text-white">LearnAI</p>
             <p className="text-gray-400 dark:text-gray-500 text-xs">AI-powered LMS</p>

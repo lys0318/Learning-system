@@ -4,6 +4,7 @@ import { useActionState, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { login } from "./actions";
+import LogoIcon from "@/components/LogoIcon";
 
 const ROLES = [
   { value: "student", label: "수강생", desc: "강의 수강 및 AI 튜터 이용", icon: "🎓" },
@@ -31,8 +32,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* 로고 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 mb-4">
-            <span className="text-white font-bold text-lg">AI</span>
+          <div className="mb-4">
+            <LogoIcon size={48} />
           </div>
           <h1 className="text-2xl font-bold text-white">LearnAI</h1>
           <p className="text-gray-400 text-sm mt-1">AI-powered LMS</p>
