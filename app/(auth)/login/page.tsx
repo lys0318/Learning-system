@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { login } from "./actions";
@@ -11,10 +11,19 @@ const ROLES = [
   { value: "admin", label: "교육운영자", desc: "전체 시스템 관리", icon: "⚙️" },
 ];
 
-export default function LoginPage() {
-  const [state, formAction, isPending] = useActionState(login, null);
+function SignupSuccessBanner() {
   const searchParams = useSearchParams();
   const signupSuccess = searchParams.get("signup") === "success";
+  if (!signupSuccess) return null;
+  return (
+    <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
+      회원가입이 완료되었습니다. 로그인해주세요.
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  const [state, formAction, isPending] = useActionState(login, null);
   const [selectedRole, setSelectedRole] = useState("student");
 
   return (
@@ -54,11 +63,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {signupSuccess && (
-            <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
-              회원가입이 완료되었습니다. 로그인해주세요.
-            </div>
-          )}
+          <Suspense>
+            <SignupSuccessBanner />
+          </Suspense>
 
           {state?.error && (
             <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
