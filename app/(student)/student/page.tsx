@@ -6,12 +6,32 @@ import RatingButton from "@/components/student/RatingButton";
 import { unenrollCourse } from "./actions";
 
 const COURSE_COLORS = [
-  "from-blue-600/30 to-blue-800/20",
-  "from-indigo-600/30 to-indigo-800/20",
-  "from-violet-600/30 to-violet-800/20",
-  "from-cyan-600/30 to-cyan-800/20",
+  "from-blue-600/40 to-indigo-600/40",
+  "from-emerald-600/30 to-cyan-600/30",
+  "from-amber-500/30 to-orange-600/30",
+  "from-violet-600/30 to-pink-600/30",
 ];
 const COURSE_EMOJIS = ["📘", "📗", "📙", "📕", "📓", "📒"];
+
+const STAT_CARDS = [
+  { key: "courses",  icon: "📚", color: "blue",   glowColor: "#2563eb" },
+  { key: "progress", icon: "📈", color: "indigo",  glowColor: "#6366f1" },
+  { key: "quizzes",  icon: "🎯", color: "green",   glowColor: "#10b981" },
+  { key: "ai",       icon: "🤖", color: "amber",   glowColor: "#f59e0b" },
+];
+
+const ICON_BG: Record<string, string> = {
+  blue:   "rgba(37,99,235,.2)",
+  indigo: "rgba(99,102,241,.2)",
+  green:  "rgba(16,185,129,.2)",
+  amber:  "rgba(245,158,11,.2)",
+};
+const SUB_COLOR: Record<string, string> = {
+  blue:   "text-blue-400",
+  indigo: "text-indigo-400",
+  green:  "text-emerald-400",
+  amber:  "text-amber-400",
+};
 
 export default async function StudentPage() {
   const supabase = await createClient();
@@ -70,41 +90,104 @@ export default async function StudentPage() {
     : null;
   const aiCount = (chatCount as unknown as { count: number } | null)?.count ?? 0;
 
+  const firstName = (profile?.full_name ?? "").split(" ").pop() ?? profile?.full_name ?? "";
+
   return (
-    <main className="px-6 py-6 space-y-6">
+    <main className="px-5 py-5 space-y-5">
+      {/* 웰컴 배너 */}
+      <div
+        className="rounded-2xl p-5 flex items-center justify-between relative overflow-hidden border border-indigo-500/20"
+        style={{ background: "linear-gradient(135deg, rgba(37,99,235,.12) 0%, rgba(99,102,241,.12) 100%)" }}
+      >
+        <div className="absolute right-16 top-1/2 -translate-y-1/2 text-5xl opacity-10 pointer-events-none select-none">🤖</div>
+        <div>
+          <h2 className="text-base font-extrabold text-gray-900 dark:text-white mb-1">
+            안녕하세요, {firstName}님! 👋
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            오늘도 학습 목표를 달성해보세요. 현재 {active.length}개 강의 수강 중입니다.
+          </p>
+        </div>
+        <Link
+          href="/student/courses"
+          className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all hover:-translate-y-px"
+          style={{ background: "linear-gradient(135deg, #2563eb, #4f46e5)", boxShadow: "0 4px 15px rgba(37,99,235,.35)" }}
+        >
+          강의 둘러보기 →
+        </Link>
+      </div>
+
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
-          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">수강 중인 강의</p>
-          <p className="text-2xl font-bold">{active.length}</p>
-          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">완강 {completed.length}개</p>
+        {/* 수강 중 */}
+        <div
+          className="rounded-2xl border border-white/[0.07] p-4 relative overflow-hidden transition-all hover:-translate-y-0.5"
+          style={{ background: "#0d1b35" }}
+        >
+          <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-50 -translate-y-8 translate-x-8 pointer-events-none" style={{ background: STAT_CARDS[0].glowColor, filter: "blur(30px)" }} />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base mb-3" style={{ background: ICON_BG.blue }}>
+            📚
+          </div>
+          <p className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{active.length}</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5 mb-2">수강 중인 강의</p>
+          <p className={`text-[11px] ${SUB_COLOR.blue}`}>완강 {completed.length}개</p>
         </div>
-        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
-          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">전체 학습 진도</p>
-          <p className="text-2xl font-bold">{avgProgress}%</p>
-          <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${avgProgress}%` }} />
+
+        {/* 학습 진도 */}
+        <div
+          className="rounded-2xl border border-white/[0.07] p-4 relative overflow-hidden transition-all hover:-translate-y-0.5"
+          style={{ background: "#0d1b35" }}
+        >
+          <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-50 -translate-y-8 translate-x-8 pointer-events-none" style={{ background: STAT_CARDS[1].glowColor, filter: "blur(30px)" }} />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base mb-3" style={{ background: ICON_BG.indigo }}>
+            📈
+          </div>
+          <p className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{avgProgress}%</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5 mb-2">전체 학습 진도</p>
+          <div className="h-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400" style={{ width: `${avgProgress}%` }} />
           </div>
         </div>
-        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
-          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">완료한 퀴즈</p>
-          <p className="text-2xl font-bold">{quizCount}개</p>
-          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
+
+        {/* 퀴즈 */}
+        <div
+          className="rounded-2xl border border-white/[0.07] p-4 relative overflow-hidden transition-all hover:-translate-y-0.5"
+          style={{ background: "#0d1b35" }}
+        >
+          <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-50 -translate-y-8 translate-x-8 pointer-events-none" style={{ background: STAT_CARDS[2].glowColor, filter: "blur(30px)" }} />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base mb-3" style={{ background: ICON_BG.green }}>
+            🎯
+          </div>
+          <p className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{quizCount}개</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5 mb-2">완료한 퀴즈</p>
+          <p className={`text-[11px] ${SUB_COLOR.green}`}>
             {avgScore !== null ? `평균 점수 ${avgScore}점` : "아직 응시 전"}
           </p>
         </div>
-        <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
-          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">AI 튜터 질문</p>
-          <p className="text-2xl font-bold">{aiCount}회</p>
-          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">누적 질문 수</p>
+
+        {/* AI 튜터 */}
+        <div
+          className="rounded-2xl border border-white/[0.07] p-4 relative overflow-hidden transition-all hover:-translate-y-0.5"
+          style={{ background: "#0d1b35" }}
+        >
+          <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-50 -translate-y-8 translate-x-8 pointer-events-none" style={{ background: STAT_CARDS[3].glowColor, filter: "blur(30px)" }} />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base mb-3" style={{ background: ICON_BG.amber }}>
+            🤖
+          </div>
+          <p className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{aiCount}회</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5 mb-2">AI 튜터 질문</p>
+          <p className={`text-[11px] ${SUB_COLOR.amber}`}>누적 질문 수</p>
         </div>
       </div>
 
       {/* 수강 중 */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-          수강 중 <span className="text-gray-400 dark:text-gray-500 font-normal">({active.length})</span>
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200">
+            수강 중 <span className="text-gray-400 dark:text-gray-600 font-normal text-xs">({active.length})</span>
+          </h2>
+          <Link href="/student/my-courses" className="text-xs text-blue-400 hover:text-blue-300">전체 보기 →</Link>
+        </div>
         {active.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {active.map((e, idx) => {
@@ -114,21 +197,34 @@ export default async function StudentPage() {
               const isCompleted = e.status === "completed";
               const myRating = isCompleted ? ratingMap[e.course_id as string] : undefined;
               return (
-                <div key={e.id} className={`bg-white dark:bg-[#16213e] rounded-xl border overflow-hidden ${isCompleted ? "border-green-500/30" : "border-gray-200 dark:border-gray-700/50"}`}>
+                <div
+                  key={e.id}
+                  className={`rounded-2xl border overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                    isCompleted
+                      ? "border-green-500/25 dark:border-green-500/25"
+                      : "border-gray-200 dark:border-white/[0.07]"
+                  }`}
+                  style={{ background: "#0d1b35" }}
+                >
                   {/* 썸네일 */}
-                  <div className={`h-20 bg-gradient-to-br ${color} flex items-center justify-center`}>
+                  <div className={`h-20 bg-gradient-to-br ${color} flex items-center justify-center relative`}>
                     <span className="text-3xl">{emoji}</span>
+                    {isCompleted && (
+                      <span className="absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/40 text-green-400">
+                        완강 ✓
+                      </span>
+                    )}
                   </div>
                   <div className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <Link
                           href={`/student/courses/${course?.id}`}
-                          className="font-semibold text-sm hover:text-blue-400 transition-colors"
+                          className="font-bold text-sm text-gray-900 dark:text-white hover:text-blue-400 transition-colors"
                         >
                           {course?.title}
                         </Link>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
+                        <p className="text-gray-500 dark:text-gray-500 text-xs mt-0.5">{course?.profiles?.full_name} 선생님</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {isCompleted && (
@@ -143,23 +239,23 @@ export default async function StudentPage() {
                         )}
                         <Link
                           href={`/student/courses/${course?.id}/chat`}
-                          className="flex items-center px-2.5 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 text-xs font-medium transition-colors"
+                          className="flex items-center px-2.5 py-1.5 rounded-xl border border-blue-500/30 text-blue-400 text-xs font-semibold transition-all hover:bg-blue-600/30"
+                          style={{ background: "rgba(37,99,235,.15)" }}
                         >
-                          🎓 AI 튜터
+                          🤖 AI 튜터
                         </Link>
                       </div>
                     </div>
                     {/* 진도 바 */}
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="flex justify-between text-xs">
-                        <span className={isCompleted ? "text-green-400 font-medium" : "text-gray-400"}>
+                        <span className={isCompleted ? "text-emerald-400 font-semibold" : "text-gray-400 dark:text-gray-500"}>
                           {isCompleted ? "완강 ✓" : `${e.progress}% 완료`}
-
                         </span>
                       </div>
-                      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 ${isCompleted ? "bg-green-500" : ""}`}
+                          className={`h-full rounded-full transition-all duration-500 ${isCompleted ? "bg-emerald-500" : ""}`}
                           style={{
                             width: `${e.progress}%`,
                             background: isCompleted ? undefined : "linear-gradient(90deg, #3b82f6, #60a5fa)",
@@ -167,9 +263,9 @@ export default async function StudentPage() {
                         />
                       </div>
                     </div>
-                    {/* 완강 평가 버튼 */}
+                    {/* 완강 평가 */}
                     {isCompleted && course?.teacher_id && (
-                      <div className="pt-1 border-t border-gray-200 dark:border-gray-700/40">
+                      <div className="pt-2 border-t border-gray-200 dark:border-white/[0.07]">
                         <RatingButton
                           courseId={e.course_id as string}
                           teacherId={course.teacher_id}
@@ -185,9 +281,15 @@ export default async function StudentPage() {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-10 text-center">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">수강 중인 강의가 없습니다.</p>
-            <Link href="/student/courses" className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors">
+          <div
+            className="rounded-2xl border border-white/[0.07] p-10 text-center"
+            style={{ background: "#0d1b35" }}
+          >
+            <p className="text-gray-500 dark:text-gray-500 mb-4 text-sm">수강 중인 강의가 없습니다.</p>
+            <Link
+              href="/student/courses"
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors bg-blue-600 hover:bg-blue-500"
+            >
               강의 둘러보기
             </Link>
           </div>
@@ -197,22 +299,30 @@ export default async function StudentPage() {
       {/* AI 추천 배너 */}
       {active.length > 0 && (
         <section>
-          <div className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-xl p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center text-xl shrink-0">🤖</div>
+          <div
+            className="rounded-2xl border border-indigo-500/20 p-4 flex items-center gap-4"
+            style={{ background: "linear-gradient(135deg, rgba(37,99,235,.1), rgba(99,102,241,.1))" }}
+          >
+            <div
+              className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl shrink-0"
+              style={{ background: "linear-gradient(135deg, rgba(37,99,235,.3), rgba(99,102,241,.3))" }}
+            >
+              🤖
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">AI 튜터와 함께 학습하세요</p>
-              <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">강의 내용에 대해 자유롭게 질문하고 맞춤형 설명을 받아보세요</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white">AI 튜터와 함께 학습하세요</p>
+              <p className="text-gray-500 dark:text-gray-500 text-xs mt-0.5">강의 내용에 대해 자유롭게 질문하고 맞춤형 설명을 받아보세요</p>
             </div>
             <Link
               href="/student/ai-tutor"
-              className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-medium transition-colors"
+              className="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all hover:-translate-y-px"
+              style={{ background: "linear-gradient(135deg, #2563eb, #4f46e5)", boxShadow: "0 4px 12px rgba(37,99,235,.3)" }}
             >
-              시작하기
+              시작하기 →
             </Link>
           </div>
         </section>
       )}
-
     </main>
   );
 }
