@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { completeMaterial, uncompleteMaterial } from "@/app/(student)/student/actions";
+import SummaryModal from "@/components/student/SummaryModal";
 
 const FILE_ICON: Record<string, string> = {
   pdf: "📄", ppt: "📊", image: "🖼️", video: "🎬", text: "📝", other: "📎",
@@ -89,6 +90,9 @@ export default function WeeklyLearning({
   const submittedAssignmentIds = new Set(assignments.filter((a) => a.submitted).map((a) => a.id));
   const [progress, setProgress] = useState(initialProgress);
   const [isPending, startTransition] = useTransition();
+  const [summaryTarget, setSummaryTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const SUMMARIZABLE = ["application/pdf", "text/plain", "text/markdown", "image/jpeg", "image/png", "image/gif", "image/webp"];
 
   const totalItems = materials.length + quizzes.length + assignments.length;
   const isCompleted = progress === 100;
@@ -213,6 +217,14 @@ export default function WeeklyLearning({
                       </p>
                       <p className="text-gray-500 text-xs mt-0.5">{formatBytes(m.file_size)}</p>
                     </div>
+                    {SUMMARIZABLE.includes(m.file_type) && (
+                      <button
+                        onClick={() => setSummaryTarget({ id: m.id, name: m.name })}
+                        className="shrink-0 px-2.5 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 text-purple-400 text-xs font-medium transition-colors"
+                      >
+                        ✨ AI 요약
+                      </button>
+                    )}
                     {m.downloadUrl && (
                       <a
                         href={m.downloadUrl}
@@ -360,6 +372,16 @@ export default function WeeklyLearning({
           </div>
         )}
       </div>
+
+      {/* AI 요약 모달 */}
+      {summaryTarget && (
+        <SummaryModal
+          materialId={summaryTarget.id}
+          courseId={courseId}
+          materialName={summaryTarget.name}
+          onClose={() => setSummaryTarget(null)}
+        />
+      )}
     </div>
   );
 }
