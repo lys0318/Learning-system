@@ -92,7 +92,7 @@ export default function WeeklyLearning({
   const [isPending, startTransition] = useTransition();
   const [summaryTarget, setSummaryTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const SUMMARIZABLE = ["application/pdf", "text/plain", "text/markdown", "image/jpeg", "image/png", "image/gif", "image/webp"];
+  const SUMMARIZABLE = ["application/pdf", "text/plain", "text/markdown", "image/jpeg", "image/png", "image/gif", "image/webp", "application/vnd.openxmlformats-officedocument.presentationml.presentation"];
 
   const totalItems = materials.length + quizzes.length + assignments.length;
   const isCompleted = progress === 100;

@@ -2,14 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { anthropic } from "@/lib/anthropic";
+import JSZip from "jszip";
 import type { MessageParam, ImageBlockParam, Base64PDFSource } from "@anthropic-ai/sdk/resources/messages";
 
 // 지원되는 파일 타입 확인
-function getSupportedType(mimeType: string): "pdf" | "text" | "image" | null {
+function getSupportedType(mimeType: string): "pdf" | "text" | "image" | "pptx" | null {
   if (mimeType === "application/pdf") return "pdf";
   if (mimeType.startsWith("text/")) return "text";
   if (mimeType.startsWith("image/")) return "image";
+  if (mimeType === "application/vnd.openxmlformats-officedocument.presentationml.presentation") return "pptx";
   return null;
+}
+
+// PPTX에서 텍스트 추출 (ppt/slides/slide*.xml의 <a:t> 태그)
+async function extractPptxText(buffer: ArrayBuffer): Promise<string> {
+  const zip = await JSZip.loadAsync(buffer);
+  const slideFiles = Object.keys(zip.files)
+    .filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+    .sort((a, b) => {
+      const numA = parseInt(a.match(/\d+/)?.[0] ?? "0");
+      const numB = parseInt(b.match(/\d+/)?.[0] ?? "0");
+      return numA - numB;
+    });
+
+  const texts: string[] = [];
+  for (let i = 0; i < slideFiles.length; i++) {
+    const xml = await zip.files[slideFiles[i]].async("string");
+    const matches = xml.match(/<a:t[^>]*>([^<]*)<\/a:t>/g) ?? [];
+    const slideText = matches
+      .map((m) => m.replace(/<[^>]+>/g, "").trim())
+      .filter((t) => t.length > 0)
+      .join(" ");
+    if (slideText.trim()) {
+      texts.push(`[슬라이드 ${i + 1}] ${slideText}`);
+    }
+  }
+  return texts.join("\n");
 }
 
 function getImageMediaType(mimeType: string): "image/jpeg" | "image/png" | "image/gif" | "image/webp" {
@@ -52,7 +80,7 @@ export async function POST(req: NextRequest) {
   const supportedType = getSupportedType(material.file_type);
   if (!supportedType) {
     return NextResponse.json(
-      { error: "이 파일 형식은 AI 요약을 지원하지 않습니다. (PDF, 텍스트, 이미지 파일만 지원)" },
+      { error: "이 파일 형식은 AI 요약을 지원하지 않습니다. (PDF, PPT, 텍스트, 이미지 파일만 지원)" },
       { status: 422 }
     );
   }
@@ -69,7 +97,14 @@ export async function POST(req: NextRequest) {
   // Claude 메시지 구성
   let userContent: MessageParam["content"];
 
-  if (supportedType === "text") {
+  if (supportedType === "pptx") {
+    const arrayBuffer = await blob.arrayBuffer();
+    const extracted = await extractPptxText(arrayBuffer);
+    if (!extracted.trim()) {
+      return NextResponse.json({ error: "슬라이드에서 텍스트를 추출할 수 없습니다." }, { status: 422 });
+    }
+    userContent = `다음은 PPT 강의 자료(${material.name})에서 추출한 슬라이드 텍스트입니다. 내용을 요약해주세요:\n\n${extracted.slice(0, 20000)}`;
+  } else if (supportedType === "text") {
     const text = await blob.text();
     userContent = `다음 강의 자료를 요약해주세요:\n\n파일명: ${material.name}\n\n${text.slice(0, 20000)}`;
   } else if (supportedType === "pdf") {
