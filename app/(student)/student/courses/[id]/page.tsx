@@ -145,6 +145,12 @@ export default async function StudentCourseDetailPage({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Link
+              href={`/student/courses/${courseId}/announcements`}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700/50 border border-gray-200 dark:border-gray-700/50 text-gray-700 dark:text-gray-300 text-sm font-medium transition-colors"
+            >
+              📢 공지
+            </Link>
+            <Link
               href={`/student/courses/${courseId}/assignments`}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700/50 border border-gray-200 dark:border-gray-700/50 text-gray-700 dark:text-gray-300 text-sm font-medium transition-colors"
             >

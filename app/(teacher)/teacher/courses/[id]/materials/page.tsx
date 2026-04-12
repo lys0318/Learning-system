@@ -62,12 +62,20 @@ export default async function CourseMaterialsPage({
             {course.title} · {totalWeeks}주차 수업 · 총 {materials?.length ?? 0}개 파일
           </p>
         </div>
-        <Link
-          href={`/teacher/courses/${courseId}/assignments`}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 text-xs text-gray-600 dark:text-gray-300 transition-colors"
-        >
-          💻 코딩 과제
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/teacher/courses/${courseId}/assignments`}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 text-xs text-gray-600 dark:text-gray-300 transition-colors"
+          >
+            💻 코딩 과제
+          </Link>
+          <Link
+            href={`/teacher/courses/${courseId}/announcements`}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 text-xs text-gray-600 dark:text-gray-300 transition-colors"
+          >
+            📢 공지
+          </Link>
+        </div>
       </div>
 
       <WeeklyMaterials

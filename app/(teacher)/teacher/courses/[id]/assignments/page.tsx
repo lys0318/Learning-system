@@ -62,12 +62,20 @@ export default async function TeacherAssignmentsPage({
             {course.title} · 총 {assignments?.length ?? 0}개 과제
           </p>
         </div>
-        <Link
-          href={`/teacher/courses/${courseId}/assignments/new`}
-          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
-        >
-          + 과제 출제
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/teacher/courses/${courseId}/announcements`}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 text-xs text-gray-600 dark:text-gray-300 transition-colors"
+          >
+            📢 공지
+          </Link>
+          <Link
+            href={`/teacher/courses/${courseId}/assignments/new`}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors"
+          >
+            + 과제 출제
+          </Link>
+        </div>
       </div>
 
       {/* 주차별 섹션 */}
