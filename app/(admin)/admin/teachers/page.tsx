@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import TeacherCareAdvisorClient from "@/components/admin/TeacherCareAdvisorClient";
 
 export default async function AdminTeachersPage() {
   const supabase = await createClient();
@@ -201,6 +202,21 @@ export default async function AdminTeachersPage() {
           )}
         </div>
       </div>
+
+      {/* AI 강사 케어 어시스턴트 */}
+      <TeacherCareAdvisorClient
+        teachers={teacherStats.map((t) => ({
+          teacherId: t.id,
+          teacherName: t.name,
+          courseCount: t.courseCount,
+          publishedCount: t.publishedCount,
+          studentCount: t.studentCount,
+          completionRate: t.completionRate,
+          avgRating: t.avgRating,
+          ratingCount: t.ratingCount,
+          qualityScore: t.qualityScore,
+        }))}
+      />
 
       {/* 품질 기준 안내 */}
       <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">

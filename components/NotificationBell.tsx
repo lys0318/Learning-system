@@ -17,6 +17,7 @@ const TYPE_ICON: Record<string, string> = {
   announcement: "📢",
   message: "💬",
   enrollment: "🎓",
+  admin_message: "📨",
 };
 
 function timeAgo(dateStr: string) {

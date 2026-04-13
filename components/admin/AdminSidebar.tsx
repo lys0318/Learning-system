@@ -23,6 +23,12 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    label: "커뮤니케이션",
+    items: [
+      { href: "/admin/messages", label: "강사 메시지", icon: "💬", exact: false },
+    ],
+  },
+  {
     label: "AI",
     items: [
       { href: "/admin/marketing", label: "AI 마케팅 조언", icon: "💡", exact: false },

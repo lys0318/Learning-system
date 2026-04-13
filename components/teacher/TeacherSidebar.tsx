@@ -24,7 +24,8 @@ const NAV_SECTIONS = [
     label: "수강생",
     items: [
       { href: "/teacher/students", label: "수강생 관리", icon: "👥", exact: false },
-      { href: "/teacher/messages", label: "학생 질문", icon: "💬", exact: false },
+      { href: "/teacher/messages", label: "학생과의 채팅", icon: "💬", exact: false },
+      { href: "/teacher/admin-messages", label: "운영자 메시지", icon: "📨", exact: false },
     ],
   },
 ];
