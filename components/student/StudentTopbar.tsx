@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NotificationBell from "@/components/NotificationBell";
 
 const PAGE_META: { pattern: RegExp; title: string; action?: { label: string; href: string } }[] = [
   { pattern: /^\/student$/, title: "학습 대시보드" },
@@ -43,10 +44,7 @@ export default function StudentTopbar() {
           </Link>
         )}
         {/* 알림 버튼 */}
-        <button className="relative w-8 h-8 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors">
-          🔔
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 border border-white dark:border-[#070d1a]" />
-        </button>
+        <NotificationBell />
       </div>
     </header>
   );

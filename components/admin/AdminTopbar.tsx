@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import NotificationBell from "@/components/NotificationBell";
 
 const TITLES: { pattern: RegExp; title: string }[] = [
   { pattern: /^\/admin$/, title: "전체 현황" },
@@ -31,9 +32,7 @@ export default function AdminTopbar() {
           />
         </div>
         {/* 알림 버튼 */}
-        <button className="relative w-8 h-8 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors">
-          🔔
-        </button>
+        <NotificationBell />
       </div>
     </header>
   );

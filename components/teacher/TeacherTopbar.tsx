@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NotificationBell from "@/components/NotificationBell";
 
 const PAGE_META: { pattern: RegExp; title: string; action?: { label: string; href: string } }[] = [
   { pattern: /^\/teacher$/, title: "강의 관리", action: { label: "+ 강의 생성", href: "/teacher/courses/new" } },
@@ -44,9 +45,7 @@ export default function TeacherTopbar() {
           </Link>
         )}
         {/* 알림 버튼 */}
-        <button className="relative w-8 h-8 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors">
-          🔔
-        </button>
+        <NotificationBell />
       </div>
     </header>
   );
