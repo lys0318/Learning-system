@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import StudentCareAdvisorClient from "@/components/teacher/StudentCareAdvisorClient";
 
 export default async function TeacherStudentsPage() {
   const supabase = await createClient();
@@ -137,6 +138,24 @@ export default async function TeacherStudentsPage() {
           <p className="text-2xl font-bold">{courses?.length ?? 0}개</p>
         </div>
       </div>
+
+      {/* AI 수강생 케어 어시스턴트 */}
+      <StudentCareAdvisorClient
+        students={(enrollments ?? []).map((e) => {
+          const p = profileMap[e.student_id];
+          const { total, done } = { total: assignmentCountByCourse[e.course_id] ?? 0, done: submittedCountMap[e.student_id]?.[e.course_id] ?? 0 };
+          return {
+            studentId: e.student_id,
+            studentName: p?.full_name ?? "알 수 없음",
+            courseId: e.course_id,
+            courseName: courseMap[e.course_id] ?? "-",
+            progress: e.progress,
+            avgQuizScore: getAvgScore(e.student_id),
+            assignmentDone: done,
+            assignmentTotal: total,
+          };
+        })}
+      />
 
       {/* 수강생 테이블 */}
       <div className="bg-white dark:bg-[#16213e] rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
