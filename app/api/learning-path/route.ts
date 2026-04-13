@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { anthropic } from "@/lib/anthropic";
+import { rateLimit } from "@/lib/rate-limit";
+
+const GOAL_MAX_LENGTH = 500;
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!rateLimit(`${user.id}:learning-path`, 5, 60_000)) {
+    return NextResponse.json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }, { status: 429 });
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -15,6 +22,10 @@ export async function POST(req: NextRequest) {
   if (profile?.role !== "student") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { goal } = await req.json() as { goal?: string };
+
+  if (goal && goal.length > GOAL_MAX_LENGTH) {
+    return NextResponse.json({ error: `학습 목표는 ${GOAL_MAX_LENGTH}자 이하로 입력해주세요.` }, { status: 400 });
+  }
 
   // 수강 중인 강의 + 진도
   const { data: enrollments } = await supabase

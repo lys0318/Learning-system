@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { anthropic } from "@/lib/anthropic";
+import { rateLimit } from "@/lib/rate-limit";
 import JSZip from "jszip";
 import type { MessageParam, ImageBlockParam, Base64PDFSource } from "@anthropic-ai/sdk/resources/messages";
 
@@ -51,6 +52,10 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!rateLimit(`${user.id}:summarize`, 10, 60_000)) {
+    return NextResponse.json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }, { status: 429 });
+  }
 
   const { materialId, courseId } = await req.json();
   if (!materialId || !courseId) {

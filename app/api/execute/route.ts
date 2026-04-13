@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { anthropic } from "@/lib/anthropic";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
+
+const CODE_MAX_LENGTH = 10_000;
 
 const WANDBOX_URL = "https://wandbox.org/api/compile.json";
 
@@ -15,10 +18,18 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (!rateLimit(`${user.id}:execute`, 10, 60_000)) {
+    return NextResponse.json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }, { status: 429 });
+  }
+
   const { code, language, description, assignmentId } = await req.json();
 
   const lang = LANG_CONFIG[language];
   if (!lang) return NextResponse.json({ error: "Unsupported language" }, { status: 400 });
+
+  if (!code || typeof code !== "string" || code.length > CODE_MAX_LENGTH) {
+    return NextResponse.json({ error: `코드는 ${CODE_MAX_LENGTH.toLocaleString()}자 이하로 입력해주세요.` }, { status: 400 });
+  }
 
   // 시도 횟수 계산
   const { count } = await supabase

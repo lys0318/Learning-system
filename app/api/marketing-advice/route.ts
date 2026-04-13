@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { anthropic } from "@/lib/anthropic";
+import { rateLimit } from "@/lib/rate-limit";
+
+const CONTEXT_MAX_LENGTH = 1000;
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!rateLimit(`${user.id}:marketing-advice`, 10, 60_000)) {
+    return NextResponse.json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }, { status: 429 });
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -16,6 +23,10 @@ export async function POST(req: NextRequest) {
   if (profile?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { courseId, context } = await req.json() as { courseId?: string; context?: string };
+
+  if (context && context.length > CONTEXT_MAX_LENGTH) {
+    return NextResponse.json({ error: `추가 정보는 ${CONTEXT_MAX_LENGTH}자 이하로 입력해주세요.` }, { status: 400 });
+  }
 
   const admin = createAdminClient();
 

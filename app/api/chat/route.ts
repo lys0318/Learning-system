@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { anthropic } from "@/lib/anthropic";
+import { rateLimit } from "@/lib/rate-limit";
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
+
+const MESSAGE_MAX_LENGTH = 2000;
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -13,6 +16,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!rateLimit(`${user.id}:chat`, 20, 60_000)) {
+    return NextResponse.json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }, { status: 429 });
+  }
+
   const { courseId, message } = (await req.json()) as {
     courseId: string;
     message: string;
@@ -20,6 +27,10 @@ export async function POST(req: NextRequest) {
 
   if (!courseId || !message?.trim()) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  }
+
+  if (message.length > MESSAGE_MAX_LENGTH) {
+    return NextResponse.json({ error: `메시지는 ${MESSAGE_MAX_LENGTH}자 이하로 입력해주세요.` }, { status: 400 });
   }
 
   // 강의 정보 조회
