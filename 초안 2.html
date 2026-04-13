@@ -1,0 +1,977 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sidebar-w: 220px;
+    --top-h: 56px;
+  }
+  body { font-family: var(--font-sans); font-size: 14px; color: var(--color-text-primary); }
+
+  .app { display: flex; height: 100vh; min-height: 600px; background: var(--color-background-tertiary); }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--color-background-primary);
+    border-right: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    padding: 16px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: #185FA5;
+    display: flex; align-items: center; justify-content: center;
+    color: #E6F1FB; font-weight: 500; font-size: 13px;
+  }
+  .logo-text { font-weight: 500; font-size: 15px; }
+  .logo-sub { font-size: 11px; color: var(--color-text-secondary); }
+
+  .role-switcher {
+    padding: 12px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .role-switcher label { font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 6px; }
+  .role-tabs { display: flex; gap: 4px; }
+  .role-tab {
+    flex: 1; padding: 5px 0; font-size: 11px; font-weight: 500;
+    border: 0.5px solid var(--color-border-secondary);
+    background: transparent; border-radius: 6px;
+    cursor: pointer; color: var(--color-text-secondary);
+    transition: all 0.15s;
+  }
+  .role-tab.active {
+    background: #185FA5; color: #E6F1FB; border-color: #185FA5;
+  }
+
+  .nav { flex: 1; padding: 8px; overflow-y: auto; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px;
+    cursor: pointer; font-size: 13px; color: var(--color-text-secondary);
+    margin-bottom: 2px; transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .nav-item.active { background: #E6F1FB; color: #185FA5; font-weight: 500; }
+  .nav-icon { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+
+  .sidebar-user {
+    padding: 12px;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #B5D4F4; color: #0C447C;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; flex-shrink: 0;
+  }
+  .user-info { min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--color-text-secondary); }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: var(--top-h); background: var(--color-background-primary);
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; flex-shrink: 0;
+  }
+  .topbar-title { font-size: 16px; font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; }
+  .btn {
+    padding: 7px 14px; border-radius: 8px; font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: transparent; cursor: pointer; color: var(--color-text-primary);
+    transition: all 0.15s; font-family: var(--font-sans);
+  }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn-primary { background: #185FA5; color: #E6F1FB; border-color: #185FA5; }
+  .btn-primary:hover { background: #0C447C; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* Page views */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Dashboard stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--color-background-secondary);
+    border-radius: 8px; padding: 16px;
+  }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .stat-value { font-size: 24px; font-weight: 500; }
+  .stat-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+  .stat-up { color: #3B6D11; }
+
+  .section-title { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+
+  /* Course cards */
+  .courses-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .course-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 12px; overflow: hidden; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .course-card:hover { border-color: var(--color-border-primary); }
+  .course-thumb {
+    height: 80px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .course-body { padding: 12px; }
+  .course-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .course-meta { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 10px; }
+  .progress-bar { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; background: #185FA5; }
+  .course-footer { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--color-text-secondary); }
+
+  /* AI Tutor */
+  .tutor-layout { display: grid; grid-template-columns: 1fr 280px; gap: 16px; height: calc(100vh - 56px - 48px); }
+  .chat-area {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .chat-header {
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ai-badge {
+    background: #E6F1FB; color: #0C447C;
+    font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 12px;
+  }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 85%; }
+  .msg-ai { align-self: flex-start; }
+  .msg-user { align-self: flex-end; }
+  .msg-bubble {
+    padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.6;
+  }
+  .msg-ai .msg-bubble { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .msg-user .msg-bubble { background: #185FA5; color: #E6F1FB; }
+  .msg-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; padding: 0 4px; }
+  .msg-typing { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: var(--color-background-secondary); border-radius: 12px; width: fit-content; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-secondary); animation: bounce 1.2s infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+
+  .chat-input-area {
+    padding: 12px;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    display: flex; gap: 8px;
+  }
+  .chat-input {
+    flex: 1; padding: 9px 12px; border-radius: 8px; font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary); font-family: var(--font-sans);
+    resize: none; outline: none;
+  }
+  .chat-input:focus { border-color: #185FA5; }
+
+  .tutor-sidebar {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .info-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 12px; padding: 14px;
+  }
+  .info-card-title { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .topic-chip {
+    display: inline-block; font-size: 11px; padding: 3px 8px;
+    background: #E6F1FB; color: #0C447C;
+    border-radius: 12px; margin: 2px;
+    cursor: pointer;
+  }
+  .topic-chip:hover { background: #B5D4F4; }
+
+  /* Quiz */
+  .quiz-container { max-width: 640px; margin: 0 auto; }
+  .quiz-header { margin-bottom: 24px; }
+  .quiz-progress-bar { height: 6px; background: var(--color-border-tertiary); border-radius: 3px; margin: 12px 0; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: #185FA5; border-radius: 3px; transition: width 0.3s; }
+  .question-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 12px; padding: 24px; margin-bottom: 16px;
+  }
+  .question-num { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 8px; }
+  .question-text { font-size: 16px; font-weight: 500; line-height: 1.5; margin-bottom: 20px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option {
+    padding: 12px 16px; border-radius: 8px; cursor: pointer;
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary);
+    font-size: 13px; transition: all 0.15s; text-align: left;
+    font-family: var(--font-sans); color: var(--color-text-primary);
+  }
+  .option:hover { border-color: #185FA5; background: #E6F1FB; color: #0C447C; }
+  .option.selected { border-color: #185FA5; background: #E6F1FB; color: #0C447C; }
+  .option.correct { border-color: #3B6D11; background: #EAF3DE; color: #3B6D11; }
+  .option.wrong { border-color: #993C1D; background: #FAECE7; color: #993C1D; }
+  .quiz-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* Teacher upload */
+  .upload-area {
+    border: 1.5px dashed var(--color-border-secondary);
+    border-radius: 12px; padding: 40px; text-align: center;
+    cursor: pointer; transition: all 0.15s; margin-bottom: 20px;
+  }
+  .upload-area:hover { border-color: #185FA5; background: #E6F1FB; }
+  .upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-text { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: var(--color-text-secondary); }
+
+  .generated-quiz {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 12px; padding: 20px;
+  }
+  .generated-quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .quiz-item { padding: 12px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+  .quiz-item:last-child { border-bottom: none; }
+  .quiz-q { font-weight: 500; margin-bottom: 6px; }
+  .quiz-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .quiz-opt-label { font-size: 11px; color: var(--color-text-secondary); background: var(--color-background-secondary); padding: 2px 8px; border-radius: 4px; }
+  .quiz-opt-label.answer { background: #EAF3DE; color: #3B6D11; }
+
+  /* Dashboard table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { text-align: left; padding: 10px 12px; border-bottom: 0.5px solid var(--color-border-secondary); font-weight: 500; color: var(--color-text-secondary); font-size: 12px; }
+  .data-table td { padding: 10px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+  .badge-blue { background: #E6F1FB; color: #185FA5; }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-amber { background: #FAEEDA; color: #633806; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+</style>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">AI</div>
+      <div>
+        <div class="logo-text">LearnAI</div>
+        <div class="logo-sub">AI-powered LMS</div>
+      </div>
+    </div>
+
+    <div class="role-switcher">
+      <label>역할 전환 (데모)</label>
+      <div class="role-tabs">
+        <button class="role-tab active" onclick="switchRole('student')">수강생</button>
+        <button class="role-tab" onclick="switchRole('teacher')">교사</button>
+        <button class="role-tab" onclick="switchRole('admin')">운영자</button>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav"></nav>
+
+    <div class="sidebar-user" id="sidebar-user"></div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">학습 대시보드</div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<script>
+const ROLES = {
+  student: {
+    name: '김수강',
+    label: '수강생',
+    avatar: '김수',
+    nav: [
+      { id: 'dashboard', icon: '⊞', label: '대시보드' },
+      { id: 'courses', icon: '◫', label: '내 강의' },
+      { id: 'tutor', icon: '◈', label: 'AI 튜터' },
+      { id: 'quiz', icon: '◻', label: '퀴즈' },
+    ]
+  },
+  teacher: {
+    name: '이교사',
+    label: '교사',
+    avatar: '이교',
+    nav: [
+      { id: 'teacher-dashboard', icon: '⊞', label: '대시보드' },
+      { id: 'upload', icon: '↑', label: '강의 업로드' },
+      { id: 'quiz-gen', icon: '◈', label: 'AI 퀴즈 생성' },
+      { id: 'students', icon: '◫', label: '수강생 관리' },
+    ]
+  },
+  admin: {
+    name: '박운영',
+    label: '운영자',
+    avatar: '박운',
+    nav: [
+      { id: 'admin-dashboard', icon: '⊞', label: '전체 현황' },
+      { id: 'analytics', icon: '◫', label: '학습 분석' },
+      { id: 'manage-courses', icon: '◻', label: '강의 관리' },
+    ]
+  }
+};
+
+let currentRole = 'student';
+let currentPage = 'dashboard';
+let chatHistory = [];
+
+const courseData = [
+  { id:1, emoji:'🔢', title:'파이썬 기초', teacher:'이교사', progress:72, total:12, done:9, color:'#E6F1FB' },
+  { id:2, emoji:'🧮', title:'데이터 분석 입문', teacher:'이교사', progress:40, total:10, done:4, color:'#EAF3DE' },
+  { id:3, emoji:'🤖', title:'머신러닝 기초', teacher:'최강사', progress:15, total:15, done:2, color:'#FAEEDA' },
+];
+
+const quizData = [
+  {
+    q: '파이썬에서 리스트(list)와 튜플(tuple)의 가장 큰 차이점은 무엇인가요?',
+    opts: ['리스트는 숫자만 저장 가능하다', '튜플은 변경이 불가능하다(immutable)', '리스트는 중복을 허용하지 않는다', '튜플은 딕셔너리 키로 사용할 수 없다'],
+    answer: 1
+  },
+  {
+    q: 'pandas에서 DataFrame의 특정 열을 선택하는 올바른 방법은?',
+    opts: ['df.column_name', 'df["column_name"]', '두 방법 모두 가능', 'df.get(column_name)'],
+    answer: 2
+  },
+  {
+    q: '머신러닝에서 과적합(Overfitting)이 발생했을 때 일반적인 해결책이 아닌 것은?',
+    opts: ['드롭아웃(Dropout) 추가', '훈련 데이터 증가', '모델 복잡도 증가', 'L2 정규화 적용'],
+    answer: 2
+  }
+];
+
+let quizState = { current: 0, selected: null, answered: false, score: 0 };
+
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach((t,i) => {
+    t.classList.toggle('active', ['student','teacher','admin'][i] === role);
+  });
+  const defaults = { student:'dashboard', teacher:'teacher-dashboard', admin:'admin-dashboard' };
+  currentPage = defaults[role];
+  renderNav();
+  renderUser();
+  renderPage();
+}
+
+function renderNav() {
+  const nav = document.getElementById('nav');
+  const items = ROLES[currentRole].nav;
+  nav.innerHTML = items.map(item => `
+    <div class="nav-item ${item.id === currentPage ? 'active' : ''}" onclick="gotoPage('${item.id}')">
+      <span class="nav-icon">${item.icon}</span>
+      ${item.label}
+    </div>
+  `).join('');
+}
+
+function renderUser() {
+  const r = ROLES[currentRole];
+  document.getElementById('sidebar-user').innerHTML = `
+    <div class="user-avatar">${r.avatar}</div>
+    <div class="user-info">
+      <div class="user-name">${r.name}</div>
+      <div class="user-role">${r.label}</div>
+    </div>
+  `;
+}
+
+function gotoPage(page) {
+  currentPage = page;
+  renderNav();
+  renderPage();
+}
+
+function renderPage() {
+  const titles = {
+    dashboard:'학습 대시보드', courses:'내 강의', tutor:'AI 튜터',
+    quiz:'퀴즈', 'teacher-dashboard':'교사 대시보드', upload:'강의 업로드',
+    'quiz-gen':'AI 퀴즈 생성', students:'수강생 관리',
+    'admin-dashboard':'전체 현황', analytics:'학습 분석', 'manage-courses':'강의 관리'
+  };
+  document.getElementById('topbar-title').textContent = titles[currentPage] || '';
+
+  const pages = {
+    dashboard: renderStudentDashboard,
+    courses: renderCourses,
+    tutor: renderTutor,
+    quiz: renderQuiz,
+    'teacher-dashboard': renderTeacherDashboard,
+    upload: renderUpload,
+    'quiz-gen': renderQuizGen,
+    students: renderStudents,
+    'admin-dashboard': renderAdminDashboard,
+    analytics: renderAnalytics,
+    'manage-courses': renderManageCourses,
+  };
+
+  const actions = {
+    courses: `<button class="btn btn-primary" onclick="gotoPage('tutor')">AI 튜터 열기 ↗</button>`,
+    upload: `<button class="btn btn-primary" onclick="simulateUpload()">강의 업로드</button>`,
+    'quiz-gen': `<button class="btn btn-primary" onclick="simulateQuizGen()">AI 퀴즈 생성</button>`,
+  };
+
+  document.getElementById('topbar-actions').innerHTML = actions[currentPage] || '';
+
+  if (pages[currentPage]) {
+    document.getElementById('content').innerHTML = pages[currentPage]();
+  }
+
+  if (currentPage === 'tutor') initTutor();
+}
+
+function renderStudentDashboard() {
+  return `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">수강 중인 강의</div><div class="stat-value">3</div><div class="stat-sub stat-up">▲ 이번 주 1개 추가</div></div>
+      <div class="stat-card"><div class="stat-label">전체 학습 진도</div><div class="stat-value">42%</div><div class="stat-sub stat-up">▲ 저번 주 대비 +8%</div></div>
+      <div class="stat-card"><div class="stat-label">완료한 퀴즈</div><div class="stat-value">12개</div><div class="stat-sub">평균 정답률 78%</div></div>
+      <div class="stat-card"><div class="stat-label">AI 튜터 질문</div><div class="stat-value">24회</div><div class="stat-sub">이번 달</div></div>
+    </div>
+    <div class="section-title">수강 중인 강의</div>
+    <div class="courses-grid">
+      ${courseData.map(c => `
+        <div class="course-card" onclick="gotoPage('courses')">
+          <div class="course-thumb" style="background:${c.color}">${c.emoji}</div>
+          <div class="course-body">
+            <div class="course-title">${c.title}</div>
+            <div class="course-meta">${c.teacher} · ${c.total}강</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${c.progress}%"></div></div>
+            <div class="course-footer"><span>${c.progress}% 완료</span><span>${c.done}/${c.total}강</span></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:24px">
+      <div class="section-title">AI 추천 학습</div>
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">◈</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:3px">오늘의 추천: 파이썬 함수와 모듈</div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">AI 분석 결과, 이 부분에서 학습이 필요합니다. 예상 소요 시간: 25분</div>
+        </div>
+        <button class="btn btn-primary" style="margin-left:auto;flex-shrink:0" onclick="gotoPage('tutor')">학습 시작</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderCourses() {
+  return `
+    <div class="courses-grid">
+      ${courseData.map(c => `
+        <div class="course-card">
+          <div class="course-thumb" style="background:${c.color}">${c.emoji}</div>
+          <div class="course-body">
+            <div class="course-title">${c.title}</div>
+            <div class="course-meta">${c.teacher} · ${c.total}강</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${c.progress}%"></div></div>
+            <div class="course-footer"><span>${c.progress}% 완료</span><span>${c.done}/${c.total}강</span></div>
+            <div style="margin-top:10px;display:flex;gap:6px">
+              <button class="btn" style="flex:1;font-size:12px" onclick="gotoPage('tutor')">AI 질문하기</button>
+              <button class="btn" style="flex:1;font-size:12px" onclick="gotoPage('quiz')">퀴즈 풀기</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderTutor() {
+  return `
+    <div class="tutor-layout">
+      <div class="chat-area">
+        <div class="chat-header">
+          <div style="font-size:14px;font-weight:500">AI 튜터</div>
+          <div class="ai-badge">Claude 기반</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-left:auto">파이썬 기초 강의 기반으로 답변합니다</div>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg msg-ai">
+            <div class="msg-bubble">안녕하세요! 파이썬 기초 강의 AI 튜터입니다. 강의 내용에 대해 궁금한 점을 자유롭게 물어보세요. 어떤 부분이 어려우신가요?</div>
+            <div class="msg-meta">AI 튜터 · 방금 전</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" id="chat-input" rows="1" placeholder="강의 내용에 대해 질문해보세요..."></textarea>
+          <button class="btn btn-primary" onclick="sendMessage()">전송</button>
+        </div>
+      </div>
+      <div class="tutor-sidebar">
+        <div class="info-card">
+          <div class="info-card-title">현재 강의</div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:4px">파이썬 기초</div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">9강/12강 완료 · 72%</div>
+          <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:72%"></div></div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">자주 묻는 주제</div>
+          <div>
+            <span class="topic-chip" onclick="askTopic('리스트와 튜플 차이')">리스트 vs 튜플</span>
+            <span class="topic-chip" onclick="askTopic('파이썬 함수 정의 방법')">함수 정의</span>
+            <span class="topic-chip" onclick="askTopic('for 루프 사용법')">for 루프</span>
+            <span class="topic-chip" onclick="askTopic('딕셔너리 사용법')">딕셔너리</span>
+            <span class="topic-chip" onclick="askTopic('클래스와 객체')">클래스/객체</span>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">오늘의 학습 통계</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--color-text-secondary)">질문 횟수</span><span id="question-count" style="font-weight:500">0회</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--color-text-secondary)">학습 시간</span><span style="font-weight:500">14분</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let questionCount = 0;
+
+function initTutor() {
+  const input = document.getElementById('chat-input');
+  if (input) {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+  }
+}
+
+function askTopic(topic) {
+  const input = document.getElementById('chat-input');
+  if (input) { input.value = topic; sendMessage(); }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  const messages = document.getElementById('chat-messages');
+  messages.innerHTML += `
+    <div class="msg msg-user">
+      <div class="msg-bubble">${text}</div>
+      <div class="msg-meta" style="text-align:right">나 · 방금 전</div>
+    </div>
+  `;
+
+  const typing = document.createElement('div');
+  typing.className = 'msg msg-ai';
+  typing.id = 'typing';
+  typing.innerHTML = `<div class="msg-typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  messages.appendChild(typing);
+  messages.scrollTop = messages.scrollHeight;
+
+  questionCount++;
+  const qc = document.getElementById('question-count');
+  if (qc) qc.textContent = questionCount + '회';
+
+  chatHistory.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `당신은 파이썬 기초 강의를 가르치는 AI 튜터입니다. 수강생이 강의 내용에 대해 질문하면 친절하고 명확하게 답변해주세요. 
+        답변은 간결하게 2-4문단으로 유지하고, 필요하면 코드 예시를 포함하세요. 
+        강의 주제: 파이썬 기초 (변수, 자료형, 리스트, 딕셔너리, 함수, 클래스, 파일 입출력)
+        한국어로 답변하세요.`,
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || '죄송합니다, 답변을 생성하지 못했습니다.';
+    chatHistory.push({ role: 'assistant', content: reply });
+
+    document.getElementById('typing')?.remove();
+    messages.innerHTML += `
+      <div class="msg msg-ai">
+        <div class="msg-bubble">${reply.replace(/\n/g,'<br>').replace(/```([\s\S]*?)```/g,'<code style="display:block;background:var(--color-background-secondary);padding:10px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin:6px 0">$1</code>')}</div>
+        <div class="msg-meta">AI 튜터 · 방금 전</div>
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('typing')?.remove();
+    messages.innerHTML += `
+      <div class="msg msg-ai">
+        <div class="msg-bubble" style="background:var(--color-background-warning);color:var(--color-text-warning)">현재 AI 튜터에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</div>
+      </div>
+    `;
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function renderQuiz() {
+  const q = quizData[quizState.current];
+  if (!q) return renderQuizResult();
+  return `
+    <div class="quiz-container">
+      <div class="quiz-header">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--color-text-secondary)">
+          <span>파이썬 기초 · 자동 생성 퀴즈</span>
+          <span>${quizState.current + 1} / ${quizData.length}</span>
+        </div>
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${((quizState.current)/quizData.length)*100}%"></div></div>
+      </div>
+      <div class="question-card">
+        <div class="question-num">문제 ${quizState.current + 1}</div>
+        <div class="question-text">${q.q}</div>
+        <div class="options">
+          ${q.opts.map((opt, i) => {
+            let cls = 'option';
+            if (quizState.answered) {
+              if (i === q.answer) cls += ' correct';
+              else if (i === quizState.selected) cls += ' wrong';
+            } else if (i === quizState.selected) cls += ' selected';
+            return `<button class="${cls}" onclick="selectOption(${i})">${String.fromCharCode(65+i)}. ${opt}</button>`;
+          }).join('')}
+        </div>
+        ${quizState.answered ? `
+          <div style="margin-top:16px;padding:12px;background:${quizState.selected===q.answer?'#EAF3DE':'#FAECE7'};border-radius:8px;font-size:13px;color:${quizState.selected===q.answer?'#3B6D11':'#993C1D'}">
+            ${quizState.selected===q.answer ? '정답입니다!' : `오답입니다. 정답은 ${String.fromCharCode(65+q.answer)}번입니다.`}
+          </div>
+        ` : ''}
+      </div>
+      <div class="quiz-actions">
+        ${quizState.answered ? `<button class="btn btn-primary" onclick="nextQuestion()">다음 문제</button>` : ''}
+        ${!quizState.answered && quizState.selected !== null ? `<button class="btn btn-primary" onclick="submitAnswer()">제출</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function selectOption(i) {
+  if (quizState.answered) return;
+  quizState.selected = i;
+  document.getElementById('content').innerHTML = renderQuiz();
+}
+
+function submitAnswer() {
+  quizState.answered = true;
+  if (quizState.selected === quizData[quizState.current].answer) quizState.score++;
+  document.getElementById('content').innerHTML = renderQuiz();
+}
+
+function nextQuestion() {
+  quizState.current++;
+  quizState.selected = null;
+  quizState.answered = false;
+  document.getElementById('content').innerHTML = quizState.current >= quizData.length ? renderQuizResult() : renderQuiz();
+}
+
+function renderQuizResult() {
+  const pct = Math.round((quizState.score / quizData.length) * 100);
+  return `
+    <div class="quiz-container" style="text-align:center;padding-top:40px">
+      <div style="font-size:48px;margin-bottom:16px">${pct>=70?'🎉':'📚'}</div>
+      <div style="font-size:24px;font-weight:500;margin-bottom:8px">퀴즈 완료!</div>
+      <div style="font-size:14px;color:var(--color-text-secondary);margin-bottom:24px">${quizState.score}/${quizData.length} 정답 · ${pct}점</div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);max-width:400px;margin:0 auto 24px">
+        <div class="stat-card"><div class="stat-label">정답</div><div class="stat-value" style="color:#3B6D11">${quizState.score}</div></div>
+        <div class="stat-card"><div class="stat-label">오답</div><div class="stat-value" style="color:#993C1D">${quizData.length-quizState.score}</div></div>
+        <div class="stat-card"><div class="stat-label">점수</div><div class="stat-value">${pct}점</div></div>
+      </div>
+      <button class="btn btn-primary" onclick="resetQuiz()">다시 풀기</button>
+      <button class="btn" style="margin-left:8px" onclick="gotoPage('tutor')">AI에게 질문하기</button>
+    </div>
+  `;
+}
+
+function resetQuiz() {
+  quizState = { current: 0, selected: null, answered: false, score: 0 };
+  document.getElementById('content').innerHTML = renderQuiz();
+}
+
+function renderTeacherDashboard() {
+  return `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">담당 강의</div><div class="stat-value">3개</div></div>
+      <div class="stat-card"><div class="stat-label">총 수강생</div><div class="stat-value">87명</div><div class="stat-sub stat-up">▲ +5명 이번 주</div></div>
+      <div class="stat-card"><div class="stat-label">평균 진도율</div><div class="stat-value">54%</div></div>
+      <div class="stat-card"><div class="stat-label">AI 생성 퀴즈</div><div class="stat-value">48개</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="section-title">수강생 현황</div>
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden">
+          <table class="data-table">
+            <thead><tr><th>이름</th><th>강의</th><th>진도</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td>김수강</td><td>파이썬 기초</td><td>72%</td><td><span class="badge badge-green">우수</span></td></tr>
+              <tr><td>이학습</td><td>데이터 분석</td><td>40%</td><td><span class="badge badge-blue">보통</span></td></tr>
+              <tr><td>박공부</td><td>파이썬 기초</td><td>20%</td><td><span class="badge badge-amber">관심필요</span></td></tr>
+              <tr><td>최열심</td><td>머신러닝</td><td>85%</td><td><span class="badge badge-green">우수</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">AI 인사이트</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px">
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">주의 필요</div>
+            <div style="font-size:13px;font-weight:500">3명이 '함수' 단원에서 학습 지연</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">AI가 보충 자료를 자동 추천했습니다</div>
+          </div>
+          <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px">
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">가장 많이 질문된 내용</div>
+            <div style="font-size:13px;font-weight:500">리스트 컴프리헨션 (12회 질문)</div>
+            <button class="btn" style="margin-top:8px;font-size:12px" onclick="gotoPage('quiz-gen')">관련 퀴즈 생성</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let uploadDone = false;
+let quizGenDone = false;
+
+function renderUpload() {
+  if (uploadDone) {
+    return `
+      <div style="max-width:600px">
+        <div style="background:var(--color-background-primary);border:2px solid #3B6D11;border-radius:12px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:24px">✓</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#3B6D11">파이썬_기초_10강.pdf 업로드 완료</div>
+            <div style="font-size:12px;color:var(--color-text-secondary)">AI가 강의 내용을 분석했습니다 · 총 24페이지</div>
+          </div>
+        </div>
+        <div class="generated-quiz">
+          <div style="font-size:13px;font-weight:500;margin-bottom:12px">AI 자동 생성 요약</div>
+          <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px">
+            이 강의는 파이썬 함수의 정의와 활용을 다루며, def 키워드, 매개변수, 반환값, 람다 함수, 재귀 함수 등의 개념을 포함합니다.
+          </div>
+          <button class="btn btn-primary" onclick="gotoPage('quiz-gen')">AI 퀴즈 자동 생성 →</button>
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div style="max-width:600px">
+      <div class="upload-area" onclick="simulateUpload()">
+        <div class="upload-icon">⬆</div>
+        <div class="upload-text">강의 자료를 업로드하세요</div>
+        <div class="upload-sub">PDF, PPT, 동영상 지원 · 최대 500MB</div>
+      </div>
+      <div style="background:var(--color-background-secondary);border-radius:8px;padding:14px;font-size:13px;color:var(--color-text-secondary)">
+        업로드 후 AI가 자동으로 강의 내용을 분석하고 요약, 퀴즈, 학습 포인트를 생성합니다.
+      </div>
+    </div>
+  `;
+}
+
+function simulateUpload() {
+  uploadDone = true;
+  document.getElementById('content').innerHTML = renderUpload();
+}
+
+function renderQuizGen() {
+  if (quizGenDone) {
+    return `
+      <div style="max-width:640px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+          <div class="ai-badge" style="font-size:13px;padding:5px 12px">AI가 5개 문제를 생성했습니다</div>
+          <button class="btn" style="margin-left:auto">전체 저장</button>
+          <button class="btn btn-primary">퀴즈 배포</button>
+        </div>
+        <div class="generated-quiz">
+          ${[
+            {q:'파이썬에서 함수를 정의할 때 사용하는 키워드는?', opts:['function','def','func','define'], ans:1},
+            {q:'다음 중 람다 함수의 올바른 사용법은?', opts:['lambda x: x*2','def lambda x: x*2','lambda(x) = x*2','function x: x*2'], ans:0},
+            {q:'재귀 함수에서 반드시 필요한 것은?', opts:['반복문','기저 조건(base case)','전역 변수','클래스'], ans:1},
+          ].map((item, i) => `
+            <div class="quiz-item">
+              <div class="quiz-q">Q${i+1}. ${item.q}</div>
+              <div class="quiz-opts">
+                ${item.opts.map((o,j) => `<span class="quiz-opt-label ${j===item.ans?'answer':''}">${String.fromCharCode(65+j)}. ${o}</span>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+          <div class="quiz-item" style="color:var(--color-text-secondary);font-size:12px;text-align:center">+ 2개 문제 더보기</div>
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div style="max-width:600px">
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:20px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:500;margin-bottom:16px">퀴즈 생성 설정</div>
+        <div style="display:grid;gap:12px">
+          <div>
+            <label style="font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:6px">강의 선택</label>
+            <select style="width:100%;padding:8px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px">
+              <option>파이썬 기초 - 10강: 함수</option>
+              <option>데이터 분석 입문 - 3강</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:6px">문제 수: 5개</label>
+            <input type="range" min="3" max="20" value="5" step="1" style="width:100%">
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:6px">난이도</label>
+            <div style="display:flex;gap:8px">
+              ${['쉬움','보통','어려움'].map((d,i) => `<button class="btn ${i===1?'btn-primary':''}" style="flex:1;font-size:12px">${d}</button>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="simulateQuizGen()">AI 퀴즈 자동 생성</button>
+    </div>
+  `;
+}
+
+function simulateQuizGen() {
+  quizGenDone = true;
+  document.getElementById('content').innerHTML = renderQuizGen();
+}
+
+function renderStudents() {
+  return `
+    <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden">
+      <table class="data-table">
+        <thead><tr><th>이름</th><th>수강 강의</th><th>진도율</th><th>퀴즈 평균</th><th>마지막 접속</th><th>상태</th></tr></thead>
+        <tbody>
+          ${[
+            ['김수강','파이썬 기초','72%','85%','오늘','우수'],
+            ['이학습','데이터 분석','40%','62%','어제','보통'],
+            ['박공부','파이썬 기초','20%','45%','3일 전','관심필요'],
+            ['최열심','머신러닝','85%','91%','오늘','우수'],
+            ['정배움','파이썬 기초','55%','70%','2일 전','보통'],
+          ].map(r => `<tr>
+            <td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td>
+            <td><span class="badge ${r[5]==='우수'?'badge-green':r[5]==='관심필요'?'badge-amber':'badge-blue'}">${r[5]}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAdminDashboard() {
+  return `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">전체 수강생</div><div class="stat-value">324명</div><div class="stat-sub stat-up">▲ +18명 이번 달</div></div>
+      <div class="stat-card"><div class="stat-label">개설 강의</div><div class="stat-value">12개</div></div>
+      <div class="stat-card"><div class="stat-label">평균 완강률</div><div class="stat-value">68%</div><div class="stat-sub stat-up">▲ 전월 +5%</div></div>
+      <div class="stat-card"><div class="stat-label">AI 튜터 응답</div><div class="stat-value">1,240회</div><div class="stat-sub">이번 달</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="section-title">강의별 현황</div>
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden">
+          <table class="data-table">
+            <thead><tr><th>강의명</th><th>수강생</th><th>완강률</th></tr></thead>
+            <tbody>
+              <tr><td>파이썬 기초</td><td>128명</td><td>72%</td></tr>
+              <tr><td>데이터 분석 입문</td><td>96명</td><td>61%</td></tr>
+              <tr><td>머신러닝 기초</td><td>64명</td><td>54%</td></tr>
+              <tr><td>웹 개발 기초</td><td>36명</td><td>80%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">AI 활용 현황</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${[
+            ['AI 튜터 질문','1,240회','이번 달'],
+            ['AI 퀴즈 생성','48세트','총 240문제'],
+            ['AI 학습 추천','892회 발송','수락률 74%'],
+            ['자동 요약 생성','36건','강의 자료'],
+          ].map(([label,val,sub]) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:12px 14px">
+              <span style="font-size:13px;color:var(--color-text-secondary)">${label}</span>
+              <div style="text-align:right"><div style="font-size:14px;font-weight:500">${val}</div><div style="font-size:11px;color:var(--color-text-secondary)">${sub}</div></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAnalytics() {
+  return `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">주간 활성 사용자</div><div class="stat-value">218명</div></div>
+      <div class="stat-card"><div class="stat-label">평균 학습 시간</div><div class="stat-value">42분/일</div></div>
+      <div class="stat-card"><div class="stat-label">퀴즈 평균 점수</div><div class="stat-value">74점</div></div>
+      <div class="stat-card"><div class="stat-label">AI 튜터 만족도</div><div class="stat-value">4.7/5</div></div>
+    </div>
+    <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:20px">
+      <div style="font-size:14px;font-weight:500;margin-bottom:16px">AI 학습 분석 리포트</div>
+      ${[
+        { label:'학습 참여도', val:82, color:'#185FA5' },
+        { label:'과제 완료율', val:67, color:'#3B6D11' },
+        { label:'퀴즈 통과율', val:74, color:'#BA7517' },
+        { label:'강의 완강률', val:68, color:'#0F6E56' },
+      ].map(item => `
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span>${item.label}</span><span style="font-weight:500">${item.val}%</span>
+          </div>
+          <div style="height:6px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${item.val}%;background:${item.color};border-radius:3px"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderManageCourses() {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:14px;color:var(--color-text-secondary)">총 12개 강의</div>
+      <button class="btn btn-primary">+ 강의 추가</button>
+    </div>
+    <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden">
+      <table class="data-table">
+        <thead><tr><th>강의명</th><th>교사</th><th>수강생</th><th>상태</th><th>관리</th></tr></thead>
+        <tbody>
+          ${[
+            ['파이썬 기초','이교사','128명','운영중'],
+            ['데이터 분석 입문','이교사','96명','운영중'],
+            ['머신러닝 기초','최강사','64명','운영중'],
+            ['웹 개발 기초','박교사','36명','준비중'],
+          ].map(r => `<tr>
+            <td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td>
+            <td><span class="badge ${r[3]==='운영중'?'badge-green':'badge-amber'}">${r[3]}</span></td>
+            <td><button class="btn" style="font-size:11px;padding:4px 10px">수정</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+switchRole('student');
+</script>
