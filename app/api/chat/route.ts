@@ -97,7 +97,7 @@ ${course.description ? `강의 소개: ${course.description}` : ""}${materialCon
 
       try {
         const claudeStream = anthropic.messages.stream({
-          model: "claude-opus-4-6",
+          model: "claude-sonnet-4-6",
           max_tokens: 1024,
           system: systemPrompt,
           messages,

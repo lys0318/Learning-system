@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   // 수강 데이터
   const { data: enrollments } = await admin
     .from("enrollments")
-    .select("course_id, progress, status");
+    .select("student_id, course_id, progress, status");
 
   // 퀴즈 결과
   const { data: quizResults } = await admin
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     : Object.entries(statsMap);
 
   // 플랫폼 전체 통계
-  const totalStudents = new Set((enrollments ?? []).map((e) => e.course_id)).size;
+  const totalStudents = new Set((enrollments ?? []).map((e) => e.student_id)).size;
   const allEnroll = (enrollments ?? []).length;
   const allCompleted = (enrollments ?? []).filter((e) => e.status === "completed").length;
   const overallCompletionRate = allEnroll > 0 ? Math.round((allCompleted / allEnroll) * 100) : 0;
@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
   const platformSummary = `
 플랫폼 전체 현황:
 - 공개 강의 수: ${(courses ?? []).length}개
+- 전체 수강생 수: ${totalStudents}명
 - 전체 수강 등록: ${allEnroll}건
 - 전체 수료율: ${overallCompletionRate}%
 - AI 튜터 질문 수: ${(chatMessages ?? []).length}회
@@ -173,7 +174,7 @@ ${context ? `[운영자 추가 정보]\n${context}` : ""}
     async start(controller) {
       try {
         const claudeStream = anthropic.messages.stream({
-          model: "claude-opus-4-6",
+          model: "claude-sonnet-4-6",
           max_tokens: 2500,
           system: systemPrompt,
           messages: [{ role: "user", content: userMessage }],

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   let aiFeedback = "";
   try {
     const msg = await anthropic.messages.create({
-      model: "claude-opus-4-6",
+      model: "claude-sonnet-4-6",
       max_tokens: 1500,
       messages: [{
         role: "user",
