@@ -186,7 +186,7 @@ ${context ? `[운영자 추가 정보]\n${context}` : ""}
       try {
         const claudeStream = anthropic.messages.stream({
           model: "claude-sonnet-4-6",
-          max_tokens: 2500,
+          max_tokens: 3000,
           system: systemPrompt,
           messages: [{ role: "user", content: userMessage }],
         });

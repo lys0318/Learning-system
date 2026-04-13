@@ -109,7 +109,7 @@ ${course.description ? `강의 소개: ${course.description}` : ""}${materialCon
       try {
         const claudeStream = anthropic.messages.stream({
           model: "claude-sonnet-4-6",
-          max_tokens: 1024,
+          max_tokens: 2048,
           system: systemPrompt,
           messages,
         });

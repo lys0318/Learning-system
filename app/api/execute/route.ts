@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   try {
     const msg = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1500,
+      max_tokens: 2048,
       messages: [{
         role: "user",
         content: `당신은 친절한 코딩 교육 전문가입니다. 학생의 코드를 분석하고 건설적인 피드백을 제공해주세요.

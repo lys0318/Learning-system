@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
       try {
         const claudeStream = anthropic.messages.stream({
           model: "claude-sonnet-4-6",
-          max_tokens: 1500,
+          max_tokens: 2048,
           system: systemPrompt,
           messages: [{ role: "user", content: userContent }],
         });
